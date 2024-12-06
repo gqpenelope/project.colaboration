@@ -282,191 +282,281 @@ with tab1:
         """,
         unsafe_allow_html=True,
     )
+    st.markdown(
+        """
+        <style>
+        /* Centrar el título */
+        .stRadio > label {
+            display: block;
+            text-align: center;
+            color: black !important;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        div[role="radiogroup"] {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+    
+        /* Botones sin seleccionar */
+        div[role="radiogroup"] > label {
+            background-color: #F46197;
+            color: #1D1E2C !important;
+            border: 2px solid black;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+    
+        /* Texto y contenido del botón */
+        div[role="radiogroup"] > label > div {
+            color: #1D1E2C !important;
+        }
+    
+        /* Botón seleccionado */
+        div[role="radiogroup"] > label[data-selected="true"] {
+            background-color: #FFB703 !important;
+            color: #1D1E2C !important;
+            border: 2px solid #FFB703;
+            font-weight: bold;
+        }
+    
+        /* Texto y contenido del botón seleccionado */
+        div[role="radiogroup"] > label[data-selected="true"] > div {
+            color: #1D1E2C !important;
+        }
+    
+        /* Hover sobre botones no seleccionados */
+        div[role="radiogroup"] > label:hover {
+            background-color: #FFE5A1 !important; /* Color de fondo en hover */
+            color: #1D1E2C !important;
+        }
+    
+        /* Hover sobre el texto y punto del botón */
+        div[role="radiogroup"] > label:hover > div {
+            color: #1D1E2C !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    # Implementación del radio con ventanas de tiempo
+    ventana_tiempo = st.radio(
+        "Selecciona una ventana de tiempo:",
+        list(ventanas.keys()),
+        horizontal=True
+    )
 
+
+    
+    # Filtrar datos según la ventana seleccionada
+    start_date, end_date = ventanas[ventana_tiempo]
+    # Obtener datos y rendimientos para cada ETF
+    datos = obtener_datos(etfs, start_date, end_date)
+    rendimientos_indiv = datos.pct_change().dropna()
+
+    st.markdown(
+        """
+        <style>
+        /* Botón seleccionado */
+        div[role="radiogroup"] > label[data-selected="true"] {
+            background-color: #FFB703; /* Color amarillo */
+            color: black;
+            border: 2px solid #FFB703;
+            font-weight: bold;
+        }
+        /* Hover sobre botones no seleccionados */
+        div[role="radiogroup"] > label:hover {
+            background-color: #FFE5A1;
+            color: black;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     # Selección del ETF para análisis
     etf_seleccionado = st.selectbox("Selecciona un ETF para análisis:", options=etfs)
 
-    if etf_seleccionado not in datos_portafolios.columns or datos_portafolios[etf_seleccionado].dropna().empty:
-        st.error(f"No hay datos disponibles para {etf_seleccionado} en la ventana seleccionada.")
-    else:
-        with st.container():
-            # Dividir en dos columnas
-            col1, col2 = st.columns([3, 2])  # Relación 3:2 entre columnas izquierda y derecha
-            st.markdown(
-                """
-                <style>
-                .titulo-columnas {
-                    text-align: center;
-                    font-size: 20px;
-                    font-weight: bold;
-                    color: white;
-                    margin-bottom: 10px;
-                    min-height: 30px; 
-                .columna {
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                    height: 100%; /* Altura completa para igualar columnas */
-                }
-                </style>
-                """,
-                unsafe_allow_html=True
-            )
+    # Dividir en dos columnas
+    col1, col2 = st.columns([3, 2])  # Relación 3:2 entre columnas izquierda y derecha
+    st.markdown(
+        """
+        <style>
+        .titulo-columnas {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+            min-height: 30px; 
+        .columna {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%; /* Altura completa para igualar columnas */
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-            # Columna Izquierda
-            with col1:
-                st.markdown('<div class="titulo-columnas">Características del ETF</div>', unsafe_allow_html=True)
+    # Columna Izquierda
+    with col1:
+        st.markdown('<div class="titulo-columnas">Características del ETF</div>', unsafe_allow_html=True)
 
-                data = descripciones_etfs[etf_seleccionado]
+        data = descripciones_etfs[etf_seleccionado]
 
-                # Tabla de características
-                tabla_caracteristicas = pd.DataFrame({
-                    "Características": ["Nombre", "Exposición", "Índice", "Moneda", "Principales Contribuyentes", "Países", "Estilo", "Costos", "Beta", "Duración"],
-                    "Detalles": [
-                        data["nombre"],
-                        data["exposicion"],
-                        data["indice"],
-                        data["moneda"],
-                        ", ".join(data["principales"]),
-                        data["paises"],
-                        data["estilo"],
-                        data["costos"],
-                        data["beta"],
-                        data["duracion"]
-                    ]
-                })
+        # Tabla de características
+        tabla_caracteristicas = pd.DataFrame({
+            "Características": ["Nombre", "Exposición", "Índice", "Moneda", "Principales Contribuyentes", "Países", "Estilo", "Costos", "Beta", "Duración"],
+            "Detalles": [
+                data["nombre"],
+                data["exposicion"],
+                data["indice"],
+                data["moneda"],
+                data["principales"],
+                data["paises"],
+                data["estilo"],
+                data["costos"],
+                data["beta"],
+                data["duracion"]
+            ]
+        })
 
-                tabla_html = tabla_caracteristicas.to_html(index=False, escape=False)
-                st.markdown(
-                    """
-                    <style>
-                    table {
-                        color: white;
-                        background-color: transparent;
-                        width: 100%;
-                        border-collapse: collapse;
-                        border: none;
-                    }
-                    th {
-                        background-color: transparent;
-                        color: #2CA58D;
-                        font-size: 20px;
-                        font-weight: bold;
-                        text-align: center;
-                        vertical-align: middle;
-                    }
-                    td {      
-                        padding: 8px;
-                        text-align: center;
-                        border-bottom: 1px solid white;
-                    }
-                    td,th {      
-                        border-left: none !important;;
-                        border-right: none !important;;
-                    }
-                    tr {      
-                        border-left: none !important;;
-                        border-right: none !important;;
-                    }
-                    </style>
-                    """,
-                    unsafe_allow_html=True
-                )
-                st.markdown(tabla_html, unsafe_allow_html=True)
-            # Columna Derecha
-            with col2:
-                st.markdown('<div class="titulo-columnas">Métricas Calculadas</div>', unsafe_allow_html=True)
+        tabla_html = tabla_caracteristicas.to_html(index=False, escape=False)
+        st.markdown(
+            """
+            <style>
+            table {
+                color: white;
+                background-color: transparent;
+                width: 100%;
+                border-collapse: collapse;
+                border: none;
+            }
+            th {
+                background-color: transparent;
+                color: #2CA58D;
+                font-size: 20px;
+                font-weight: bold;
+                text-align: center;
+                vertical-align: middle;
+            }
+            td {      
+                padding: 8px;
+                text-align: center;
+                border-bottom: 1px solid white;
+            }
+            td,th {      
+                border-left: none !important;;
+                border-right: none !important;;
+            }
+            tr {      
+                border-left: none !important;;
+                border-right: none !important;;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown(tabla_html, unsafe_allow_html=True)
+    # Columna Derecha
+    with col2:
+        st.markdown('<div class="titulo-columnas">Métricas Calculadas</div>', unsafe_allow_html=True)
 
-                # Métricas en boxes
-                style_metric_cards(background_color="#1F2C56", border_left_color="#F46197")
-                st.markdown(
-                    """
-                    <style>
-                    .metric-box {
-                        background-color: #1F2C56;
-                        color: white;
-                        padding: 20px;
-                        border-radius: 10px;
-                        text-align: center;
-                        margin-bottom: 10px;
-                        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
-                    }
-                    .metric-container {
-                        display: flex;
-                        flex-wrap: wrap;
-                        justify-content: space-evenly; /* Distribución uniforme */
-                    }
-                    </style>
-                    """,
-                    unsafe_allow_html=True
-                )
-                metricas = calcular_metricas(rendimientos[etf_seleccionado])
+        # Métricas en boxes
+        style_metric_cards(background_color="#1F2C56", border_left_color="#F46197")
+        st.markdown(
+            """
+            <style>
+            .metric-box {
+                background-color: #1F2C56;
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                margin-bottom: 10px;
+                box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+            }
+            .metric-container {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-evenly;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+        # Calcular métricas para cada ETF
+        metricas = calcular_metricas(rendimientos_indiv[etf_seleccionado])
 
-                st.columns(3)
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric(label="Media", value=f"{metricas['Media']:.2f}")
-                with col2:
-                    st.metric(label="Volatilidad", value=f"{metricas['Volatilidad']:.2f}")
-                with col3:
-                    st.metric(label="Sharpe", value=f"{metricas['Sharpe']:.2f}")
+        st.columns(3)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric(label="Media", value=f"{metricas['Media']:.2f}")
+        with col2:
+            st.metric(label="Volatilidad", value=f"{metricas['Volatilidad']:.2f}")
+        with col3:
+            st.metric(label="Sharpe", value=f"{metricas['Sharpe']:.2f}")
 
-                col4, col5,col6 = st.columns(3) 
-                with col4:
-                    st.metric(label="Sesgo", value=f"{metricas['Sesgo']:.2f}")
-                with col5:
-                    st.metric(label="Curtosis", value=f"{metricas['Curtosis']:.2f}")
-                with col6:
-                   st.metric(label="Sortino Ratio", value=f"{metricas['Sortino Ratio']:.2f}")
+        col4, col5,col6 = st.columns(3) 
+        with col4:
+            st.metric(label="Sesgo", value=f"{metricas['Sesgo']:.2f}")
+        with col5:
+            st.metric(label="Curtosis", value=f"{metricas['Curtosis']:.2f}")
+        with col6:
+            st.metric(label="Sortino Ratio", value=f"{metricas['Sortino Ratio']:.2f}")
 
-                col7, col8, col9 = st.columns(3)
-                with col7:
-                    st.metric(label="VaR", value=f"{metricas['VaR']:.2f}")
-                with col8:
-                    st.metric(label="CVaR", value=f"{metricas['CVaR']:.2f}")
-                with col9:
-                    st.metric(label="Drawdown", value=f"{metricas['Drawdown']:.2f}")
+        col7, col8, col9 = st.columns(3)
+        with col7:
+            st.metric(label="VaR", value=f"{metricas['VaR']:.2f}")
+        with col8:
+            st.metric(label="CVaR", value=f"{metricas['CVaR']:.2f}")
+        with col9:
+            st.metric(label="Drawdown", value=f"{metricas['Drawdown']:.2f}")
 
-                col10 = st.columns(1)
-                st.metric(label="Momentum", value=f"{metricas['Momentum']:.2f}")
+        col10 = st.columns(1)
+        st.metric(label="Momentum", value=f"{metricas['Momentum']:.2f}")
 
-        with st.container():
-            # Dividir en dos columnas
-            col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-            with col1:
-                 # Gráfica de precios normalizados
-                st.markdown('<div class="titulo-columnas">Serie de Tiempo de Precios Normalizados</div>', unsafe_allow_html=True)
-                precios_normalizados = datos_portafolios[etf_seleccionado] / datos_portafolios[etf_seleccionado].iloc[0] * 100
-                fig_precios = go.Figure(go.Scatter(
-                    x=precios_normalizados.index,
-                    y=precios_normalizados,
-                    mode='lines',
-                    name=etf_seleccionado,
-                    line=dict(color='#F46197')
-                ))
+    with col1:
+        # Gráfica de precios normalizados
+        st.markdown('<div class="titulo-columnas">Serie de Tiempo de Precios Normalizados</div>', unsafe_allow_html=True)
+        precios_normalizados = datos[etf_seleccionado] / datos[etf_seleccionado].iloc[0] * 100
+        fig_precios = go.Figure(go.Scatter(
+            x=precios_normalizados.index,
+            y=precios_normalizados,
+            mode='lines',
+            name=etf_seleccionado,
+            line=dict(color='#F46197')
+        ))
 
-                fig_precios.update_layout(
-                    title=dict(text="Precio Normalizado", font=dict(color='white')),
-                    xaxis=dict(title="Fecha", titlefont=dict(color='white'), tickfont=dict(color='white')),
-                    yaxis=dict(title="Precio Normalizado", titlefont=dict(color='white'), tickfont=dict(color='white')),
-                    hovermode="x unified",
-                    plot_bgcolor='#1D1E2C',
-                    paper_bgcolor='#1D1E2C',
-                    font=dict(color='white')
-                )
-                fig_precios.update_xaxes(showgrid=False)
-                fig_precios.update_yaxes(showgrid=False)
-                st.plotly_chart(fig_precios)
+        fig_precios.update_layout(
+            title=dict(text="Precio Normalizado", font=dict(color='white')),
+            xaxis=dict(title="Fecha", titlefont=dict(color='white'), tickfont=dict(color='white')),
+            yaxis=dict(title="Precio Normalizado", titlefont=dict(color='white'), tickfont=dict(color='white')),
+            hovermode="x unified",
+            plot_bgcolor='#1D1E2C',
+            paper_bgcolor='#1D1E2C',
+            font=dict(color='white')
+        )
+        fig_precios.update_xaxes(showgrid=False)
+        fig_precios.update_yaxes(showgrid=False)
+        st.plotly_chart(fig_precios)
 
-            with col2:
-                # Histograma de rendimientos
-                st.markdown('<div class="titulo-columnas">Histograma de Rendimientos con VaR y CVaR</div>', unsafe_allow_html=True) 
-                var_95, cvar_95 = var_cvar(rendimientos[etf_seleccionado], confianza=0.95)
-                histograma = histog_distr(rendimientos[etf_seleccionado], var_95, cvar_95, f"Distribución de rendimientos para {etf_seleccionado}")
-                st.plotly_chart(histograma)
-
-
+    with col2:
+        # Histograma de rendimientos
+        st.markdown('<div class="titulo-columnas">Histograma de Rendimientos con VaR y CVaR</div>', unsafe_allow_html=True) 
+        var_95, cvar_95 = var_cvar(rendimientos_indiv[etf_seleccionado], confianza=0.95)
+        histograma = histog_distr(rendimientos_indiv[etf_seleccionado], var_95, cvar_95, f"Distribución de rendimientos para {etf_seleccionado}")
+        st.plotly_chart(histograma)
 
                 
 # Tab 2: Portafolios Óptimos
