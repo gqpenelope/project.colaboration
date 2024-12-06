@@ -462,148 +462,159 @@ with tab1:
 
 # Tab 2: Portafolios Óptimos
 with tab2:
+    # Forzar ventana de tiempo a 2010-2020 para este tab
+    ventana_fijada = "2010-2020"
+    start_date, end_date = ventanas[ventana_fijada]  # Forzar los datos de esta ventana
+    datos_2010_2020 = obtener_datos(etfs, start_date, end_date)  # Descargar datos para 2010-2020
+    rendimientos_2010_2020 = datos_2010_2020.pct_change().dropna()  # Calcular rendimientos
+
     st.markdown(
-        """
-        <div style="
-            background-color: #FFB703;
-            padding: 8px;
-            border-radius: 20px;
-            color: black;
-            text-align: center;
-        ">
-            <h1 style="margin: 0; color: #black; font-size: 25px; ">Portafolios Óptimos</h1>
+    """
+    <div style="
+        background-color: #FFB703;
+        padding: 8px;
+        border-radius: 20px;
+        color: black;
+        text-align: center;
+    ">
+        <h1 style="margin: 0; color: #black; font-size: 25px; ">Portafolios Óptimos</h1>
+    </div>
+    """,
+    unsafe_allow_html=True,
+    )
+        # Mostrar un aviso para el usuario
+    st.markdown(
+        f"""
+        <div style="text-align: center; padding: 10px; border-radius: 15px; color: #FB8500; font-weight: bold;">
+            Este análisis utiliza exclusivamente datos de la ventana: <u>2010-2020</u>.
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
-    if selected == "2010-2020":
-        # Función para optimizar portafolios
-        def optimizar_portafolio(rendimientos, objetivo="sharpe", rendimiento_objetivo=None, incluir_tipo_cambio=False):
-            media = rendimientos.mean() * 252
-            covarianza = rendimientos.cov() * 252
-            num_activos = len(media)
-            pesos_iniciales = np.ones(num_activos) / num_activos
-            limites = [(0.035, 0.4) for _ in range(num_activos)]
-            restricciones = [{'type': 'eq', 'fun': lambda x: np.sum(x) - 1}]
+    # Función para optimizar portafolios
+    def optimizar_portafolio(rendimientos, objetivo="sharpe", rendimiento_objetivo=None, incluir_tipo_cambio=False):
+        media = rendimientos.mean() * 252
+        covarianza = rendimientos.cov() * 252
+        num_activos = len(media)
+        pesos_iniciales = np.ones(num_activos) / num_activos
+        limites = [(0.035, 0.4) for _ in range(num_activos)]
+        restricciones = [{'type': 'eq', 'fun': lambda x: np.sum(x) - 1}]
 
-            if incluir_tipo_cambio:
-                tipo_cambio_rendimientos = tipo_cambio.pct_change().mean() * 252
-                media += tipo_cambio_rendimientos
+        if incluir_tipo_cambio:
+            tipo_cambio_rendimientos = tipo_cambio.pct_change().mean() * 252
+            media += tipo_cambio_rendimientos
 
-            if objetivo == "sharpe":
-                def objetivo_func(pesos):
-                    rendimiento = np.dot(pesos, media)
-                    riesgo = np.sqrt(np.dot(pesos.T, np.dot(covarianza, pesos)))
-                    return -rendimiento / riesgo
-            elif objetivo == "volatilidad":
-                def objetivo_func(pesos):
-                    return np.sqrt(np.dot(pesos.T, np.dot(covarianza, pesos)))
-            elif objetivo == "rendimiento":
-                restricciones.append({'type': 'eq', 'fun': lambda x: np.dot(x, media) - rendimiento_objetivo})
-                def objetivo_func(pesos):
-                    return np.sqrt(np.dot(pesos.T, np.dot(covarianza, pesos)))
+        if objetivo == "sharpe":
+            def objetivo_func(pesos):
+                rendimiento = np.dot(pesos, media)
+                riesgo = np.sqrt(np.dot(pesos.T, np.dot(covarianza, pesos)))
+                return -rendimiento / riesgo
+        elif objetivo == "volatilidad":
+            def objetivo_func(pesos):
+                return np.sqrt(np.dot(pesos.T, np.dot(covarianza, pesos)))
+        elif objetivo == "rendimiento":
+            restricciones.append({'type': 'eq', 'fun': lambda x: np.dot(x, media) - rendimiento_objetivo})
+            def objetivo_func(pesos):
+                return np.sqrt(np.dot(pesos.T, np.dot(covarianza, pesos)))
 
-            resultado = sco.minimize(objetivo_func, pesos_iniciales, method='SLSQP', bounds=limites, constraints=restricciones)
-            return resultado.x
+        resultado = sco.minimize(objetivo_func, pesos_iniciales, method='SLSQP', bounds=limites, constraints=restricciones)
+        return resultado.x
 
-        # Optimización de los portafolios
-        pesos_sharpe = optimizar_portafolio(rendimientos, objetivo="sharpe")
-        pesos_volatilidad = optimizar_portafolio(rendimientos, objetivo="volatilidad")
-        pesos_rendimiento = optimizar_portafolio(rendimientos, objetivo="rendimiento", rendimiento_objetivo=0.10, incluir_tipo_cambio=True)
+    # Optimización de los portafolios
+    pesos_sharpe = optimizar_portafolio(rendimientos_2010_2020, objetivo="sharpe")
+    pesos_volatilidad = optimizar_portafolio(rendimientos_2010_2020, objetivo="volatilidad")
+    pesos_rendimiento = optimizar_portafolio(rendimientos_2010_2020, objetivo="rendimiento", rendimiento_objetivo=0.10, incluir_tipo_cambio=True)
 
-        # Mostrar los pesos optimizados
-        pesos_df = pd.DataFrame({
-            "Máximo Sharpe": pesos_sharpe,
-            "Mínima Volatilidad": pesos_volatilidad,
-            "Mínima Volatilidad (Rendimiento 10% en MXN)": pesos_rendimiento
-        }, index=etfs)
+    # Mostrar los pesos optimizados
+    pesos_df = pd.DataFrame({
+        "Máximo Sharpe": pesos_sharpe,
+        "Mínima Volatilidad": pesos_volatilidad,
+        "Mínima Volatilidad (Rendimiento 10% en MXN)": pesos_rendimiento
+    }, index=etfs)
 
-        # Visualización de portafolios optimizados
-        portafolio_seleccionado = st.selectbox(
-            "Selecciona el portafolio a visualizar:",
-            ["Máximo Sharpe", "Mínima Volatilidad", "Mínima Volatilidad (Rendimiento 10% en MXN)"]
+    # Visualización de portafolios optimizados
+    portafolio_seleccionado = st.selectbox(
+        "Selecciona el portafolio a visualizar:",
+        ["Máximo Sharpe", "Mínima Volatilidad", "Mínima Volatilidad (Rendimiento 10% en MXN)"]
+    )
+
+    st.subheader(f"Pesos del Portafolio: {portafolio_seleccionado}")
+
+    fig_barras = go.Figure(data=[
+        go.Bar(
+            x=pesos_df.index,
+            y=pesos_df[portafolio_seleccionado],
+            marker_color='#2CA58D'
         )
+    ])
 
-        st.subheader(f"Pesos del Portafolio: {portafolio_seleccionado}")
-
-        fig_barras = go.Figure(data=[
-            go.Bar(
-                x=pesos_df.index,
-                y=pesos_df[portafolio_seleccionado],
-                marker_color='#2CA58D'
-            )
-        ])
-
-        fig_barras.update_layout(
-            title=dict(
-                text=f"Pesos del Portafolio: {portafolio_seleccionado}",
-                font=dict(color='white')
-            ),
-            xaxis=dict(
-                title="ETFs",
-                titlefont=dict(color='white'),
-                tickfont=dict(color='white')
-            ),
-            yaxis=dict(
-                title="Pesos",
-                titlefont=dict(color='white'),
-                tickfont=dict(color='white')
-            ),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
+    fig_barras.update_layout(
+        title=dict(
+            text=f"Pesos del Portafolio: {portafolio_seleccionado}",
             font=dict(color='white')
+        ),
+        xaxis=dict(
+            title="ETFs",
+            titlefont=dict(color='white'),
+            tickfont=dict(color='white')
+        ),
+        yaxis=dict(
+            title="Pesos",
+            titlefont=dict(color='white'),
+            tickfont=dict(color='white')
+        ),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white')
+    )
+
+    st.plotly_chart(fig_barras)
+
+    # Gráfica de pastel
+    st.subheader("Composición del Portafolio")
+
+    valores_redondeados = [round(peso, 6) if peso > 1e-6 else 0 for peso in pesos_df[portafolio_seleccionado]]
+    etiquetas = [
+        f"{etf} ({peso:.6f})" if peso > 0 else f"{etf} (<1e-6)"
+        for etf, peso in zip(etfs, pesos_df[portafolio_seleccionado])
+    ]
+
+    fig_pastel = go.Figure(data=[
+        go.Pie(
+            labels=etiquetas,
+            values=valores_redondeados,
+            hoverinfo='label+percent+value',
+            textinfo='percent',
+            marker=dict(colors=['#2CA58D', '#F46197', '#84BC9C', '#FFD700', '#497076'])
         )
+    ])
 
-        st.plotly_chart(fig_barras)
-
-        # Gráfica de pastel
-        st.subheader("Composición del Portafolio")
-
-        valores_redondeados = [round(peso, 6) if peso > 1e-6 else 0 for peso in pesos_df[portafolio_seleccionado]]
-        etiquetas = [
-            f"{etf} ({peso:.6f})" if peso > 0 else f"{etf} (<1e-6)"
-            for etf, peso in zip(etfs, pesos_df[portafolio_seleccionado])
-        ]
-
-        fig_pastel = go.Figure(data=[
-            go.Pie(
-                labels=etiquetas,
-                values=valores_redondeados,
-                hoverinfo='label+percent+value',
-                textinfo='percent',
-                marker=dict(colors=['#2CA58D', '#F46197', '#84BC9C', '#FFD700', '#497076'])
-            )
-        ])
-
-        fig_pastel.update_layout(
-            title=dict(
-                text=f"Distribución del Portafolio ({portafolio_seleccionado})",
-                font=dict(color='white')
-            ),
-            legend=dict(
-                font=dict(color='white'),
-                bgcolor='rgba(0,0,0,0)'
-            ),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
+    fig_pastel.update_layout(
+        title=dict(
+            text=f"Distribución del Portafolio ({portafolio_seleccionado})",
             font=dict(color='white')
-        )
+        ),
+        legend=dict(
+            font=dict(color='white'),
+            bgcolor='rgba(0,0,0,0)'
+        ),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white')
+    )
 
-        st.plotly_chart(fig_pastel)
+    st.plotly_chart(fig_pastel)
 
-        if portafolio_seleccionado == "Mínima Volatilidad (Rendimiento 10% en MXN)":
-            st.subheader("Ajustes por Tipo de Cambio")
-            try:
-                tipo_cambio_medio = tipo_cambio.mean()
-                if isinstance(tipo_cambio_medio, pd.Series):
-                    tipo_cambio_medio = tipo_cambio_medio.iloc[0]
-                st.write(f"**Tipo de cambio medio esperado:** {tipo_cambio_medio:.2f} USD/MXN")
-            except Exception as e:
-                st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
-    else:
-        st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.")
-
+    if portafolio_seleccionado == "Mínima Volatilidad (Rendimiento 10% en MXN)":
+        st.subheader("Ajustes por Tipo de Cambio")
+        try:
+            tipo_cambio_medio = tipo_cambio.mean()
+            if isinstance(tipo_cambio_medio, pd.Series):
+                tipo_cambio_medio = tipo_cambio_medio.iloc[0]
+            st.write(f"**Tipo de cambio medio esperado:** {tipo_cambio_medio:.2f} USD/MXN")
+        except Exception as e:
+            st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
 
 # Tab 3: Comparación de Portafolios
 with tab3:
