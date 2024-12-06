@@ -1016,3 +1016,4 @@ with tab4:
 
     except Exception as e:
         st.error(f"Ocurrió un error en la optimización Black-Litterman: {e}")
+        
