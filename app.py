@@ -725,7 +725,7 @@ with tab2:
                         values=valores_redondeados,
                         hoverinfo='label+percent+value',
                         textinfo='percent',
-                        marker=dict(colors=['#2CA58D', '#F46197', '#84BC9C', '#FFD700', '#497076'])
+                        marker=dict(colors=['#FB8500', '#2CA58D', '#84BC9C', '#F46197', '#FFB703'])
                     )
                 ])
 
