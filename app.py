@@ -767,7 +767,8 @@ with tab2:
             except Exception as e:
                 st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
     else:
-        st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.") 
+        st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.")
+
 # Tab 3: Comparación de Portafolios
 with tab3:
     st.markdown(
@@ -1209,12 +1210,7 @@ with tab4:
                 # Gráfica de pastel
                 st.subheader("Gráfico de Pastel del Portafolio")
                 fig_bl = go.Figure(data=[
-                    go.Pie(
-                        labels=etfs, 
-                        values=pesos_black_litterman, 
-                        hoverinfo='label+percent',
-                        marker=dict(colors=['#FB8500','#2CA58D', '#84BC9C',  '#F46197, '#FFB703'])  
-                    ) 
+                    go.Pie(labels=etfs, values=pesos_black_litterman, hoverinfo='label+percent')
                 ])
                 fig_bl.update_layout(
                     title="Distribución del Portafolio Ajustado - Black-Litterman",
