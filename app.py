@@ -452,7 +452,7 @@ with tab1:
         st.markdown('<div class="titulo-columnas">Métricas Calculadas</div>', unsafe_allow_html=True)
 
         # Métricas en boxes
-        style_metric_cards(background_color="#FB8500", border_left_color="#2CA58D")
+        style_metric_cards(background_color="#F46197", border_left_color="#84BC9C")
         st.markdown(
             """
             <style>
