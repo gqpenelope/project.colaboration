@@ -759,7 +759,7 @@ with tab3:
         <style>
         .centered-small {
             text-align: center;
-            font-size: 18px; /* Ajusta el tamaño del texto */
+            font-size: 20px; 
             font-weight: bold;
         }
         </style>
@@ -825,7 +825,21 @@ with tab3:
     st.plotly_chart(fig_bt)
 
     # Mostrar estadísticas
-    st.markdown("### Métricas de Backtesting")
+    st.markdown(
+        """
+        <style>
+        .centered-small {
+            text-align: center;
+            font-size: 20px; 
+            font-weight: bold;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Texto centrado con tamaño más pequeño
+    st.markdown('<div class="centered-small">Métricas de Backtesting</div>', unsafe_allow_html=True)
 
     # HTML para las métricas personalizadas
     def render_metric(label, value, background_color, border_left_color, text_color="white"):
