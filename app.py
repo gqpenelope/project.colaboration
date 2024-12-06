@@ -1125,7 +1125,12 @@ with tab4:
                 # Gráfica de pastel
                 st.subheader("Gráfico de Pastel del Portafolio")
                 fig_bl = go.Figure(data=[
-                    go.Pie(labels=etfs, values=pesos_black_litterman, hoverinfo='label+percent')
+                    go.Pie(
+                        labels=etfs, 
+                        values=pesos_black_litterman, 
+                        hoverinfo='label+percent',
+                        marker=dict(colors=['red', 'brown', 'blue', 'green'])  # Colores personalizados
+                    ) 
                 ])
                 fig_bl.update_layout(
                     title="Distribución del Portafolio Ajustado - Black-Litterman",
