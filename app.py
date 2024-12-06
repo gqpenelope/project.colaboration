@@ -1022,6 +1022,7 @@ with tab3:
     st.write("Basándonos en los resultados del backtesting, este portafolio es sólido porque combina un rendimiento atractivo del 12% con una estructura de riesgo razonable. La relación riesgo-retorno es muy buena, como lo demuestra el ratio de Sharpe de 0.7 y el Sortino de 0.68. Además, los riesgos extremos, medidos por el VaR y el CVAR, son controlados para un portafolio expuesto al mercado accionario. Finalmente, el máximo drawdown está dentro de niveles típicos para inversiones de renta variable.")
     st.write("En conclusión, este portafolio es una excelente elección para un inversor con tolerancia al riesgo moderada, interesado en obtener retornos por encima del promedio.")
 # Tab 4: Black-Litterman
+# Tab 4: Black-Litterman
 with tab4:
     st.markdown(
         """
@@ -1079,31 +1080,79 @@ with tab4:
             "IAU": "Sabemos que las commodities funcionan como coberturas inflacionarias, además de que nos permiten diversificar nuestro portafolio, y en un ciclo económico inflacionario esperado, muchos bancos centrales suelen acumular reservas de oro como medida de estabilidad, impulsando la demanda. Al ser año de transición de gobierno en E.E.U.U. esperamos un crecimiento de la inflación moderada pero con perspectivas altas a futuro. Proyección: 5%."
         }
 
-        for etf, expectativa in expectativas.items():
-            st.write(f"{etf}:** {expectativa}")
-
-        # Mostrar restricciones del portafolio
-        st.subheader("Restricciones del Portafolio")
-        st.write("- Peso mínimo por activo: 3.5%")
-        st.write("- Peso máximo por activo: 40%")
-
-        # Mostrar los pesos optimizados
-        st.subheader("Pesos Ajustados del Portafolio Black-Litterman")
-        for etf, peso in zip(etfs, pesos_black_litterman):
-            st.write(f"{etf}:** {peso:.2%}")
-
-        # Gráfica de pastel
-        fig_bl = go.Figure(data=[
-            go.Pie(labels=etfs, values=pesos_black_litterman, hoverinfo='label+percent')
-        ])
-        fig_bl.update_layout(
-            title="Distribución del Portafolio Ajustado - Black-Litterman",
-            legend=dict(font=dict(color="white")),
-            paper_bgcolor='#1D1E2C',
-            font=dict(color='white')
+        # Convertimos las expectativas en un DataFrame
+        df_expectativas = pd.DataFrame(
+            [{"ETF": etf, "Expectativa": expectativa} for etf, expectativa in expectativas.items()]
         )
-        st.plotly_chart(fig_bl)
+
+        tabla_html_BL = df_expectativas.to_html(index=False, escape=False)
+        st.markdown(
+            """
+            <style>
+            table {
+                color: white;
+                background-color: transparent;
+                width: 100%;
+                border-collapse: collapse;
+                border: none;
+            }
+            th {
+                background-color: transparent;
+                color: #2CA58D;
+                font-size: 20px;
+                font-weight: bold;
+                text-align: justify;
+                vertical-align: middle;
+            }
+            td {      
+                padding: 8px;
+                text-align: justify;
+                border-bottom: 1px solid white;
+            }
+            td,th {      
+                border-left: none !important;;
+                border-right: none !important;;
+            }
+            tr {      
+                border-left: none !important;;
+                border-right: none !important;;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown(tabla_html_BL, unsafe_allow_html=True)
+
+        with st.container():
+            # Dividir en dos columnas
+            col1, col2 = st.columns(2)  # Relación 4:2 entre columnas izquierda y derecha
+
+            with col1:
+
+                # Mostrar los pesos optimizados
+                st.subheader("Pesos Ajustados del Portafolio Black-Litterman")
+                for etf, peso in zip(etfs, pesos_black_litterman):
+                    st.write(f"{etf}:** {peso:.2%}")
+
+                # Mostrar restricciones del portafolio
+                st.subheader("Restricciones del Portafolio")
+                st.write("- Peso mínimo por activo: 3.5%")
+                st.write("- Peso máximo por activo: 40%")
+
+            with col2:
+
+                # Gráfica de pastel
+                st.subheader("Gráfico de Pastel del Portafolio")
+                fig_bl = go.Figure(data=[
+                    go.Pie(labels=etfs, values=pesos_black_litterman, hoverinfo='label+percent')
+                ])
+                fig_bl.update_layout(
+                    title="Distribución del Portafolio Ajustado - Black-Litterman",
+                    legend=dict(font=dict(color="white")),
+                    paper_bgcolor='#1D1E2C',
+                    font=dict(color='white')
+                )
+                st.plotly_chart(fig_bl)
 
     except Exception as e:
         st.error(f"Ocurrió un error en la optimización Black-Litterman: {e}")
-        
