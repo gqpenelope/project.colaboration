@@ -641,7 +641,7 @@ with tab3:
     'LQD': '#73d2de',
     'EMB': '#d81159',
     'SPY': '#fbb13c',
-    'EMXC': '#8f2d56',
+    'EWZ': '#8f2d56',
     'IAU': '#218380'
     }
 
