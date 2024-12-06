@@ -620,7 +620,19 @@ with tab3:
     )
     
     # Comparación de Precios Normalizados
-    st.subheader("Precios Normalizados de los ETFs Seleccionados")
+    st.markdown(
+        """
+        <style>
+        .centered {
+            text-align: center;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Subheader centrado
+    st.markdown('<h3 class="centered">Precios Normalizados de los ETFs Seleccionados</h3>', unsafe_allow_html=True)
     precios_normalizados = datos / datos.iloc[0] * 100
 
     
