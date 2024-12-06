@@ -601,7 +601,8 @@ with tab2:
             st.write(f"**Tipo de cambio medio esperado:** {tipo_cambio_medio:.2f} USD/MXN")
         except Exception as e:
             st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
-# Tab 3: Comparación de Portafolios
+
+
 # Tab 3: Comparación de Portafolios
 with tab3:
     st.header("Comparación de Portafolios")
@@ -610,36 +611,62 @@ with tab3:
     st.subheader("Precios Normalizados de los ETFs Seleccionados")
     precios_normalizados = datos / datos.iloc[0] * 100
 
+    
+    colores_etfs = {
+    'LQD': '#73d2de',
+    'EMB': '#d81159',
+    'SPY': '#fbb13c',
+    'EMXC': '#8f2d56',
+    'IAU': '#218380'
+    }
+
+    
     fig = go.Figure()
     for etf in etfs:
         fig.add_trace(go.Scatter(
             x=precios_normalizados.index,
             y=precios_normalizados[etf],
             mode='lines',
-            name=etf
+            name=etf,
+            line=dict(color=colores_etfs[etf])
         ))
-
+        
+    
     fig.update_layout(
-        title="Comparación de Precios Normalizados",
-        xaxis_title="Fecha",
-        yaxis_title="Precio Normalizado",
+        title=dict(text="Comparación de Precios Normalizados", font=dict(color='white')),
+        xaxis=dict(
+            title="Fecha",
+            titlefont=dict(color='white'),
+            tickfont=dict(color='white'),
+            showgrid=False,
+            linecolor='white',
+            tickcolor='white'
+        ),
+        yaxis=dict(
+            title="Precio Normalizado",
+            titlefont=dict(color='white'),
+            tickfont=dict(color='white'),
+            showgrid=False,
+            linecolor='white',
+            tickcolor='white'
+        ),
         hovermode="x unified",
         plot_bgcolor='#1D1E2C',
         paper_bgcolor='#1D1E2C',
-        font=dict(color='white')
+        font=dict(color='white'),
+        legend=dict(
+            font=dict(color='white'),
+            bgcolor='#1D1E2C'
+        )
     )
     st.plotly_chart(fig)
+
 
     # Backtesting
     st.subheader("Backtesting")
 
     def backtesting_portafolio(rendimientos, pesos, inicio, fin, nivel_var=0.05):
         rendimientos_bt = rendimientos.loc[inicio:fin]
-    
-        if rendimientos_bt.empty or len(rendimientos_bt) < 1:  # Validar que haya datos
-            st.error(f"No hay datos suficientes para realizar el backtesting en la ventana seleccionada: {inicio} - {fin}.")
-            return pd.Series(dtype=float), {"Error": "Datos insuficientes"}  # Retornar valores vacíos
-    
         rendimientos_portafolio = rendimientos_bt.dot(pesos)
         rendimiento_acumulado = (1 + rendimientos_portafolio).cumprod()
 
@@ -651,7 +678,7 @@ with tab3:
         curtosis_portafolio = rendimientos_portafolio.kurt()
 
         # Cálculo de VaR y CVaR
-        var = np.percentile(rendimientos_portafolio.dropna(), nivel_var * 100)
+        var = np.percentile(rendimientos_portafolio, nivel_var * 100)
         cvar = rendimientos_portafolio[rendimientos_portafolio <= var].mean()
 
         # Sortino Ratio
@@ -659,7 +686,7 @@ with tab3:
         downside_deviation = np.sqrt((rendimientos_negativos ** 2).mean()) * np.sqrt(252)
         sortino_ratio = rendimiento_anualizado / downside_deviation
 
-        #  Drawdown
+        # Drawdown
         max_acumulado = rendimiento_acumulado.cummax()
         drawdown = (rendimiento_acumulado / max_acumulado - 1).min()
 
@@ -676,8 +703,8 @@ with tab3:
             "Máximo Drawdown": drawdown
         }
 
-        return rendimiento_acumulado, estadisticas
 
+        return rendimiento_acumulado, estadisticas
 
     # Parámetros del backtesting
     inicio = "2021-01-01"
@@ -690,36 +717,116 @@ with tab3:
     bt_rendimiento, stats_rendimiento = backtesting_portafolio(rendimientos, pesos_rendimiento, inicio, fin)
     bt_iguales, stats_iguales = backtesting_portafolio(rendimientos, pesos_iguales, inicio, fin)
 
-    # Gráfica de rendimiento acumulado
+    # Gráfica de Rendimiento Acumulado
     st.subheader("Rendimiento Acumulado")
     fig_bt = go.Figure()
-    fig_bt.add_trace(go.Scatter(x=bt_sharpe.index, y=bt_sharpe, mode='lines', name="Máximo Sharpe"))
-    fig_bt.add_trace(go.Scatter(x=bt_volatilidad.index, y=bt_volatilidad, mode='lines', name="Mínima Volatilidad"))
-    fig_bt.add_trace(go.Scatter(x=bt_rendimiento.index, y=bt_rendimiento, mode='lines', name="Mínima Volatilidad (Rendimiento 10%)"))
-    fig_bt.add_trace(go.Scatter(x=bt_iguales.index, y=bt_iguales, mode='lines', name="Pesos Iguales"))
-
+    fig_bt.add_trace(go.Scatter(
+        x=bt_sharpe.index,
+        y=bt_sharpe,
+        mode='lines',
+        name="Máximo Sharpe",
+        line=dict(color='#9df7e5')
+    ))
+    fig_bt.add_trace(go.Scatter(
+        x=bt_volatilidad.index,
+        y=bt_volatilidad,
+        mode='lines',
+        name="Mínima Volatilidad",
+        line=dict(color='#d90368')
+    ))
+    fig_bt.add_trace(go.Scatter(
+        x=bt_rendimiento.index,
+        y=bt_rendimiento,
+        mode='lines',
+        name="Mínima Volatilidad (Rendimiento 10%)",
+        line=dict(color='#5bc8af')
+    ))
+    fig_bt.add_trace(go.Scatter(
+        x=bt_iguales.index,
+        y=bt_iguales,
+        mode='lines',
+        name="Pesos Iguales",
+        line=dict(color='#af4d98')
+    ))
     fig_bt.update_layout(
-        title="Rendimiento Acumulado",
-        xaxis_title="Fecha",
-        yaxis_title="Rendimiento Acumulado",
-        hovermode="x unified",
+        title=dict(text="Rendimiento Acumulado", font=dict(color='white')),
+        xaxis=dict(
+            title="Fecha",
+            titlefont=dict(color='white'),
+            tickfont=dict(color='white')
+        ),
+        yaxis=dict(
+            title="Rendimiento Acumulado",
+            titlefont=dict(color='white'),
+            tickfont=dict(color='white')
+        ),
         plot_bgcolor='#1D1E2C',
         paper_bgcolor='#1D1E2C',
-        font=dict(color='white')
+        font=dict(color='white'),
+        legend=dict(
+            font=dict(color='white'),
+            bgcolor='#1D1E2C'
+        )
     )
     st.plotly_chart(fig_bt)
 
     # Mostrar estadísticas
-    # Mostrar estadísticas
     st.markdown("### Métricas de Backtesting")
-    for nombre, stats in [("Máximo Sharpe", stats_sharpe), ("Mínima Volatilidad", stats_volatilidad), 
-                      ("Mínima Volatilidad (Rendimiento 10%)", stats_rendimiento), ("Pesos Iguales", stats_iguales)]:
-        st.markdown(f"**{nombre}:**")
-        for key, value in stats.items():
-            if isinstance(value, (int, float)):  # Verifica si el valor es numérico
-                st.metric(label=key, value=f"{value:.2f}")
-            else:  # Si no es numérico, muestra el valor tal como está
-                st.metric(label=key, value=str(value))
+
+    # HTML para las métricas personalizadas
+    def render_metric(label, value, background_color, border_left_color, text_color="white"):
+        return f"""
+        <div style="background-color: {background_color}; color: {text_color}; padding: 10px; 
+                    border-radius: 10px; text-align: center; margin-bottom: 10px; 
+                    border-left: 6px solid {border_left_color};">
+            <h5 style="margin: 0; font-size: 18px;">{label}</h5>
+            <p style="margin: 0; font-size: 24px; font-weight: bold;">{value}</p>
+        </div>
+        """
+
+    # Columnas principales
+    col1, col2 = st.columns(2)
+
+    # Columna 1: Máximo Sharpe y Mínima Volatilidad (en 3 boxes por fila cada uno)
+    with col1:
+        # Máximo Sharpe
+        st.markdown("#### Máximo Sharpe")
+        stats = stats_sharpe
+        # Dividir en filas de 3 métricas
+        for i in range(0, len(stats), 3):  
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#1F2C56", border_left_color="#F46197"), unsafe_allow_html=True)
+
+        # Mínima Volatilidad
+        st.markdown("#### Mínima Volatilidad")
+        stats = stats_volatilidad
+        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#da4167", border_left_color="#a2d2ff"), unsafe_allow_html=True)
+
+    # Columna 2: Mínima Volatilidad (Rendimiento 10%) y Pesos Iguales (en 3 boxes por fila cada uno)
+    with col2:
+        # Mínima Volatilidad (Rendimiento 10%)
+        st.markdown("#### Mínima Volatilidad (Rendimiento 10%)")
+        stats = stats_rendimiento
+        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#8f2d56", border_left_color="#026c7c", text_color="black"), unsafe_allow_html=True)
+
+        # Pesos Iguales
+        st.markdown("#### Pesos Iguales")
+        stats = stats_iguales
+        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#93e1d8", border_left_color="#8f2d56", text_color="black"), unsafe_allow_html=True)
 
 
 # Tab 4: Black-Litterman
