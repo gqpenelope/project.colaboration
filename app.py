@@ -1210,7 +1210,12 @@ with tab4:
                 # Gráfica de pastel
                 st.subheader("Gráfico de Pastel del Portafolio")
                 fig_bl = go.Figure(data=[
-                    go.Pie(labels=etfs, values=pesos_black_litterman, hoverinfo='label+percent')
+                    go.Pie(
+                        labels=etfs, 
+                        values=pesos_black_litterman, 
+                        hoverinfo='label+percent',
+                        marker=dict(colors=['#FB8500','#2CA58D', '#84BC9C',  '#F46197, '#FFB703'])  
+                    )
                 ])
                 fig_bl.update_layout(
                     title="Distribución del Portafolio Ajustado - Black-Litterman",
@@ -1220,5 +1225,6 @@ with tab4:
                 )
                 st.plotly_chart(fig_bl)
 
+    
     except Exception as e:
         st.error(f"Ocurrió un error en la optimización Black-Litterman: {e}")
