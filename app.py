@@ -361,25 +361,6 @@ with tab1:
     datos = obtener_datos(etfs, start_date, end_date)
     rendimientos_indiv = datos.pct_change().dropna()
 
-    st.markdown(
-        """
-        <style>
-        /* Botón seleccionado */
-        div[role="radiogroup"] > label[data-selected="true"] {
-            background-color: #FFB703; /* Color amarillo */
-            color: black;
-            border: 2px solid #FFB703;
-            font-weight: bold;
-        }
-        /* Hover sobre botones no seleccionados */
-        div[role="radiogroup"] > label:hover {
-            background-color: #FFE5A1;
-            color: black;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
     # Selección del ETF para análisis
     etf_seleccionado = st.selectbox("Selecciona un ETF para análisis:", options=etfs)
 
