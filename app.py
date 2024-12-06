@@ -462,20 +462,19 @@ with tab1:
 
 # Tab 2: Portafolios Óptimos
 with tab2:
-    st.header("Portafolios Óptimos")
     st.markdown(
-    """
-    <div style="
-        background-color: #C4F5FC;
-        padding: 8px;
-        border-radius: 20px;
-        color: black;
-        text-align: center;
-    ">
-        <h1 style="margin: 0; color: #black; font-size: 25px; ">Portafolios Óptimos</h1>
-    </div>
-    """,
-    unsafe_allow_html=True,
+        """
+        <div style="
+            background-color: #FFB703;
+            padding: 8px;
+            border-radius: 20px;
+            color: black;
+            text-align: center;
+        ">
+            <h1 style="margin: 0; color: #black; font-size: 25px; ">Portafolios Óptimos</h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
     # Función para optimizar portafolios
@@ -605,8 +604,21 @@ with tab2:
 
 # Tab 3: Comparación de Portafolios
 with tab3:
-    st.header("Comparación de Portafolios")
-
+    st.markdown(
+        """
+        <div style="
+            background-color: #FFB703;
+            padding: 8px;
+            border-radius: 20px;
+            color: black;
+            text-align: center;
+        ">
+            <h1 style="margin: 0; color: #black; font-size: 25px; ">Comparación de Portafolios</h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    
     # Comparación de Precios Normalizados
     st.subheader("Precios Normalizados de los ETFs Seleccionados")
     precios_normalizados = datos / datos.iloc[0] * 100
@@ -831,8 +843,20 @@ with tab3:
 
 # Tab 4: Black-Litterman
 with tab4:
-    st.header("Modelo de Optimización Black-Litterman")
-
+    st.markdown(
+        """
+        <div style="
+            background-color: #FFB703;
+            padding: 8px;
+            border-radius: 20px;
+            color: black;
+            text-align: center;
+        ">
+            <h1 style="margin: 0; color: #black; font-size: 25px; ">Modelo de Optimización Black-Litterman</h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     try:
         # Parámetros del modelo
         media_rendimientos = rendimientos.mean() * 252
