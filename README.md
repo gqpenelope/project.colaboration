@@ -1,4 +1,4 @@
-Nombres:\
+Equipo:\
 Blancas Lopez Valentina\
 Garcia Quiroz Penelope Itzel\
 Lopes Morales Patricio Sebastian\
