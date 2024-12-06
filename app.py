@@ -307,7 +307,7 @@ with tab1:
             border: 2px solid black;
             border-radius: 10px;
             padding: 8px 16px;
-            font-size: 16px;
+            font-size: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
