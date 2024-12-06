@@ -29,7 +29,7 @@ st.markdown(
 st.title("Análisis y Optimización de Portafolios")
 
 # Definición de ETFs y ventanas de tiempo
-etfs = ['LQD', 'EMB', 'SPY', 'EMXC', 'IAU']
+etfs = ['LQD', 'EMB', 'SPY', 'EWZ', 'IAU']
 descripciones_etfs = {
     "LQD": {
         "nombre": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
@@ -61,15 +61,15 @@ descripciones_etfs = {
         "estilo": "Mix(Growth/Value)",
         "costos": "Comisión de administración: 0.03%"
     },
-    "EMXC": {
-        "nombre": "iShares MSCI Emerging Markets ex China ETF",
-        "exposicion": "Empresas de mercados emergentes excluyendo China.",
-        "indice": "MSCI Emerging Markets ex China Index",
+    "EWZ": {
+        "nombre": "iShares MSCI Brazil ETF (EWZ)",
+        "exposicion": "Empresas brasileñas de gran y mediana capitalización.",
+        "indice": "MSCI Brazil Index",
         "moneda": "USD",
-        "principales": ["Samsung Electronics", "Taiwan Semiconductor", "Infosys"],
-        "paises": "Corea del Sur, Taiwán, India, entre otros",
-        "estilo": "Growth",
-        "costos": "Comisión de administración: 0.25%"
+        "principales": ["Petrobras", "Vale", "Itaú Unibanco"],
+        "sectores": ["Energía", "Materiales", "Finanzas"],
+        "estilo": "Blend (Growth y Value)",
+        "costos": "Comisión de administración: 0.58%"
     },
     "IAU": {
         "nombre": "iShares Gold Trust",
@@ -670,11 +670,11 @@ with tab4:
         # Expectativas de crecimiento para cada ETF
         st.subheader("Expectativas de Crecimiento por ETF")
         expectativas = {
-            "LQD": "Esperamos buen crecimiento debido a su alta duración y exposición a sectores clave como banca y tecnología. Proyección: 8%.",
-            "EMB": "Beneficio por bajas tasas de interés en mercados emergentes y exposición a bonos gubernamentales mexicanos. Proyección: 6.5%.",
-            "SPY": "Exposición significativa a tecnología (31.66%) y políticas proteccionistas en EE.UU. Proyección: 12%.",
-            "EMXC": "Diversificación en mercados emergentes excluyendo China, con alta exposición a tecnología. Proyección: 6%.",
-            "IAU": "Commodities como cobertura inflacionaria; alta demanda de bancos centrales. Proyección: 5%."
+            "LQD": "Esperamos buen crecimiento dado que tiene una duración de 8.47, donde aprovecharemos la baja esperada de tasas de interés en un periodo de 1 año, además de que el etf tiene un vencimiento promedio ponderado de 13.19 años donde casi una tercera parte del vencimiento de los bonos es de +20 años. Incluye Sectores Clave como Banca, Consumo no cíclico, Tecnología, Comunicaciones y Energía. Aunque no esperamos un rendimiento tal alto como el año pasado del 15%, si esperamos un buen rendimiento por los beneficios esperados de estos sectores debido a las políticas económicas del presidente electo Donald Trump done son políticas proteccionistas e inflacionarias. Proyección: 8%.",
+            "EMB": "Esperamos un buen crecimiento dado que el fondo tiene una duración de 7.17 beneficiada por la baja de tasad de interés en mercados emergentes, además de contener bonos gubernamentales mexicanos donde sabemos que la posición de la última minuta del Banco de México fue de seguir recortando en 25 puntos base la tasa e incluso se habló de recortarla en 50 puntos base, además de tener un vencimiento promedio ponderado de 11.9 añps donde casi una tercera parte (25.97%) tienen un vencimiento de +20 años. Proyección: 6.5%.",
+            "SPY": "Si bien la valuación de varias empresas dentro de este ínidice se encuentra en máximos históricos, seguimos esperando rendimientos alcistas por las políticas proteccionistas esperadas, donde creemos un alto crecimiento económico y altas utilidades por aquellas reformas fiscales que se plantean implementar, donde Tech se verá muy beneficiado y es donde estamos mayormente expuestos en el índice con un 31.66%, 13.62% en el Sector Financiero y 10.81% en Consumo Discrecional, donde sabemos que tiene una fuerte correlación con Tech. Proyección: 12%.",
+            "EWZ": "Con una gran exposición a materias primas y al sector financiero, se alinea a nuestro escenario base, donde la demanda global por commodities influirán en su desempeño y que tiene como otro factor clave que la economía brasileña depende en gran medida de las materias primas.  Proyección: 6%.",
+            "IAU": "Sabemos que las commodities funcionan como coberturas inflacionarias, además de que nos permiten diversificar nuestro portafolio, y en un ciclo económico inflacionario esperado, muchos bancos centrales suelen acumular reservas de oro como medida de estabilidad, impulsando la demanda. Al ser año de transición de gobierno en E.E.U.U. esperamos un crecimiento de la inflación moderada pero con perspectivas altas a futuro. Proyección: 5%."
         }
 
         for etf, expectativa in expectativas.items():
