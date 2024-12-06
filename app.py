@@ -98,28 +98,28 @@ ventanas = {
     "2021-2023": ("2021-01-01", "2023-12-31")
 }
 # Menú lateral para seleccionar ventana de tiempo
-with st.sidebar:
-    selected = option_menu(
-        menu_title="Ventana",
-        options=list(ventanas.keys()),
-        icons=["calendar", "calendar-range", "calendar3"],
-        menu_icon="gear",
-        default_index=0,
-        styles={
-            "container": {"padding": "5px", "background-color": "#1D1E2C"},
-            "icon": {"color": "white", "font-size": "25px"},
-            "nav-link": {
-                "font-size": "16px",
-                "text-align": "left",
-                "margin": "0px",
-                "color": "white",
-                "background-color": "#1D1E2C",
-            },
-            "nav-link-selected": {"background-color": "#FFB703", "color": "white"},
-        },
-    )
+# with st.sidebar:
+    # selected = option_menu(
+    #     menu_title="Ventana",
+    #     options=list(ventanas.keys()),
+    #     icons=["calendar", "calendar-range", "calendar3"],
+    #     menu_icon="gear",
+    #     default_index=0,
+    #     styles={
+    #         "container": {"padding": "5px", "background-color": "#1D1E2C"},
+    #         "icon": {"color": "white", "font-size": "25px"},
+    #         "nav-link": {
+    #             "font-size": "16px",
+    #             "text-align": "left",
+    #             "margin": "0px",
+    #             "color": "white",
+    #             "background-color": "#1D1E2C",
+    #         },
+    #         "nav-link-selected": {"background-color": "#FFB703", "color": "white"},
+    #     },
+    # )
 
-start_date, end_date = ventanas[selected]
+#start_date, end_date = ventanas[selected]
 
 # Tabs de la aplicación
 st.markdown(
@@ -151,11 +151,17 @@ def obtener_tipo_cambio(start_date, end_date):
     return tipo_cambio
 
 # Obtener datos
-datos = obtener_datos(etfs, start_date, end_date)
-tipo_cambio = obtener_tipo_cambio(start_date, end_date)
+# datos = obtener_datos(etfs, start_date, end_date)
+# tipo_cambio = obtener_tipo_cambio(start_date, end_date)
+
+datos_portafolios = obtener_datos(etfs, "2010-01-01", "2020-12-31")
+tipo_cambio_portafolios = obtener_tipo_cambio("2010-01-01", "2020-12-31")
+
+datos_backtesting = obtener_datos(etfs, "2021-01-01", "2023-12-31")
+tipo_cambio_backtesting = obtener_tipo_cambio("2021-01-01", "2023-12-31")
 
 # Calcular rendimientos diarios
-rendimientos = datos.pct_change().dropna()
+rendimientos = datos_portafolios.pct_change().dropna()
 # Función para calcular VaR y CVaR
 def var_cvar(returns, confianza=0.95):
     VaR = returns.quantile(1 - confianza)
@@ -280,7 +286,7 @@ with tab1:
     # Selección del ETF para análisis
     etf_seleccionado = st.selectbox("Selecciona un ETF para análisis:", options=etfs)
 
-    if etf_seleccionado not in datos.columns or datos[etf_seleccionado].dropna().empty:
+    if etf_seleccionado not in datos_portafolios.columns or datos_portafolios[etf_seleccionado].dropna().empty:
         st.error(f"No hay datos disponibles para {etf_seleccionado} en la ventana seleccionada.")
     else:
         with st.container():
@@ -431,7 +437,7 @@ with tab1:
             with col1:
                  # Gráfica de precios normalizados
                 st.markdown('<div class="titulo-columnas">Serie de Tiempo de Precios Normalizados</div>', unsafe_allow_html=True)
-                precios_normalizados = datos[etf_seleccionado] / datos[etf_seleccionado].iloc[0] * 100
+                precios_normalizados = datos_portafolios[etf_seleccionado] / datos_portafolios[etf_seleccionado].iloc[0] * 100
                 fig_precios = go.Figure(go.Scatter(
                     x=precios_normalizados.index,
                     y=precios_normalizados,
@@ -480,7 +486,7 @@ with tab2:
         unsafe_allow_html=True,
     )
 
-    if selected == "2010-2020":
+    if True:
         # Función para optimizar portafolios
         def optimizar_portafolio(rendimientos, objetivo="sharpe", rendimiento_objetivo=None, incluir_tipo_cambio=False):
             media = rendimientos.mean() * 252
@@ -491,7 +497,7 @@ with tab2:
             restricciones = [{'type': 'eq', 'fun': lambda x: np.sum(x) - 1}]
 
             if incluir_tipo_cambio:
-                tipo_cambio_rendimientos = tipo_cambio.pct_change().mean() * 252
+                tipo_cambio_rendimientos = tipo_cambio_portafolios.pct_change().mean() * 252
                 media += tipo_cambio_rendimientos
 
             if objetivo == "sharpe":
@@ -513,7 +519,7 @@ with tab2:
         # Optimización de los portafolios
         pesos_sharpe = optimizar_portafolio(rendimientos, objetivo="sharpe")
         pesos_volatilidad = optimizar_portafolio(rendimientos, objetivo="volatilidad")
-        pesos_rendimiento = optimizar_portafolio(rendimientos, objetivo="rendimiento", rendimiento_objetivo=0.10, incluir_tipo_cambio=True)
+        pesos_rendimiento = optimizar_portafolio(rendimientos, objetivo="rendimiento", rendimiento_objetivo=0.10, incluir_tipo_cambio=False)
 
         # Mostrar los pesos optimizados
         pesos_df = pd.DataFrame({
@@ -598,10 +604,10 @@ with tab2:
         if portafolio_seleccionado == "Mínima Volatilidad (Rendimiento 10% en MXN)":
             st.subheader("Ajustes por Tipo de Cambio")
             try:
-                tipo_cambio_medio = tipo_cambio.mean()
+                tipo_cambio_medio = tipo_cambio_portafolios.mean()
                 if isinstance(tipo_cambio_medio, pd.Series):
                     tipo_cambio_medio = tipo_cambio_medio.iloc[0]
-                st.write(f"**Tipo de cambio medio esperado:** {tipo_cambio_medio:.2f} USD/MXN")
+                st.write(f"Tipo de cambio medio esperado: {tipo_cambio_medio:.2f} USD/MXN")
             except Exception as e:
                 st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
     else:
@@ -638,7 +644,7 @@ with tab3:
     
     # Subheader centrado
     st.markdown('<h3 class="centered">Precios Normalizados</h3>', unsafe_allow_html=True)
-    precios_normalizados = datos / datos.iloc[0] * 100
+    precios_normalizados = datos_backtesting / datos_backtesting.iloc[0] * 100
     
     colores_etfs = {
     'LQD': '#73d2de',
@@ -688,6 +694,10 @@ with tab3:
     st.plotly_chart(fig)
 
     # Backtesting
+
+    # Calcular rendimientos diarios Backtesting
+    rendimientos_backtesting = datos_backtesting.pct_change().dropna()
+
     st.markdown(
         """
         <style>
@@ -701,212 +711,226 @@ with tab3:
     # Subheader centrado
     st.markdown('<h3 class="centered">Backtesting</h3>', unsafe_allow_html=True)
 
-    # Verificar si los pesos están definidos
-    if selected != "2010-2020":
-        st.warning("El backtesting solo está disponible para la ventana 2010-2020.")
-    else:
-        def backtesting_portafolio(rendimientos, pesos, inicio, fin, nivel_var=0.05):
-            # Filtrar datos dentro del rango
-            rendimientos_bt = rendimientos.loc[inicio:fin]
-            if rendimientos_bt.empty:
-                raise ValueError(f"No hay datos disponibles en el rango {inicio} a {fin}.")
+    def backtesting_portafolio(rendimientos, pesos, inicio, fin, nivel_var=0.05):
+        rendimientos_bt = rendimientos.loc[inicio:fin]
+        rendimientos_portafolio = rendimientos_bt.dot(pesos)
+        rendimiento_acumulado = (1 + rendimientos_portafolio).cumprod()
 
-            rendimientos_portafolio = rendimientos_bt.dot(pesos)
-            if rendimientos_portafolio.empty:
-                raise ValueError("Los rendimientos del portafolio están vacíos después del cálculo. Revisa los datos de entrada.")
+        # Estadísticas básicas
+        rendimiento_anualizado = (1 + rendimientos_portafolio.mean()) ** 252 - 1
+        volatilidad_anualizada = rendimientos_portafolio.std() * np.sqrt(252)
+        sharpe_ratio = rendimiento_anualizado / volatilidad_anualizada
+        sesgo_portafolio = rendimientos_portafolio.skew()
+        curtosis_portafolio = rendimientos_portafolio.kurt()
 
-            rendimiento_acumulado = (1 + rendimientos_portafolio).cumprod()
+        # Cálculo de VaR y CVaR
+        var = np.percentile(rendimientos_portafolio, nivel_var * 100)
+        cvar = rendimientos_portafolio[rendimientos_portafolio <= var].mean()
 
-            # Estadísticas básicas
-            rendimiento_anualizado = (1 + rendimientos_portafolio.mean()) ** 252 - 1
-            volatilidad_anualizada = rendimientos_portafolio.std() * np.sqrt(252)
-            sharpe_ratio = rendimiento_anualizado / volatilidad_anualizada
-            sesgo_portafolio = rendimientos_portafolio.skew()
-            curtosis_portafolio = rendimientos_portafolio.kurt()
+        # Sortino Ratio
+        rendimientos_negativos = rendimientos_portafolio[rendimientos_portafolio < 0]
+        downside_deviation = np.sqrt((rendimientos_negativos ** 2).mean()) * np.sqrt(252)
+        sortino_ratio = rendimiento_anualizado / downside_deviation
 
-            # Validar que rendimientos_portafolio tiene datos suficientes
-            if len(rendimientos_portafolio) == 0:
-                raise ValueError("No hay suficientes datos para calcular VaR o CVaR.")
-            
-            # Cálculo de VaR y CVaR
-            var = np.percentile(rendimientos_portafolio, nivel_var * 100)
-            cvar = rendimientos_portafolio[rendimientos_portafolio <= var].mean()
+        # Drawdown
+        max_acumulado = rendimiento_acumulado.cummax()
+        drawdown = (rendimiento_acumulado / max_acumulado - 1).min()
 
-            # Sortino Ratio
-            rendimientos_negativos = rendimientos_portafolio[rendimientos_portafolio < 0]
-            downside_deviation = np.sqrt((rendimientos_negativos ** 2).mean()) * np.sqrt(252)
-            sortino_ratio = rendimiento_anualizado / downside_deviation
+        # Diccionario con todas las estadísticas
+        estadisticas = {
+            "Rendimiento Anualizado": rendimiento_anualizado,
+            "Volatilidad Anualizada": volatilidad_anualizada,
+            "Ratio de Sharpe": sharpe_ratio,
+            "Sesgo": sesgo_portafolio,
+            "Curtosis": curtosis_portafolio,
+            "VaR ({}%)".format(int(nivel_var * 100)): var,
+            "CVaR ({}%)".format(int(nivel_var * 100)): cvar,
+            "Sortino Ratio": sortino_ratio,
+            "Máximo Drawdown": drawdown
+        }
 
-            # Drawdown
-            max_acumulado = rendimiento_acumulado.cummax()
-            drawdown = (rendimiento_acumulado / max_acumulado - 1).min()
 
-            # Diccionario con todas las estadísticas
-            estadisticas = {
-                "Rendimiento Anualizado": rendimiento_anualizado,
-                "Volatilidad Anualizada": volatilidad_anualizada,
-                "Ratio de Sharpe": sharpe_ratio,
-                "Sesgo": sesgo_portafolio,
-                "Curtosis": curtosis_portafolio,
-                "VaR ({}%)".format(int(nivel_var * 100)): var,
-                "CVaR ({}%)".format(int(nivel_var * 100)): cvar,
-                "Sortino Ratio": sortino_ratio,
-                "Máximo Drawdown": drawdown
-            }
+        return rendimiento_acumulado, estadisticas
 
-            return rendimiento_acumulado, estadisticas
+    # Parámetros del backtesting
+    inicio = "2021-01-01"
+    fin = "2023-12-31"
 
-        # Parámetros del backtesting
-        inicio = "2021-01-01"
-        fin = "2023-12-31"
+    # Pesos iguales
+    pesos_iguales = np.full(rendimientos.shape[1], 1 / rendimientos.shape[1])
 
-        # Pesos para los diferentes portafolios
-        pesos_iguales = np.full(rendimientos.shape[1], 1 / rendimientos.shape[1])
-        bt_sharpe, stats_sharpe = backtesting_portafolio(rendimientos, pesos_sharpe, inicio, fin)
-        bt_volatilidad, stats_volatilidad = backtesting_portafolio(rendimientos, pesos_volatilidad, inicio, fin)
-        bt_rendimiento, stats_rendimiento = backtesting_portafolio(rendimientos, pesos_rendimiento, inicio, fin)
-        bt_iguales, stats_iguales = backtesting_portafolio(rendimientos, pesos_iguales, inicio, fin)
+    # Backtesting
+    bt_sharpe, stats_sharpe = backtesting_portafolio(rendimientos_backtesting, pesos_sharpe, inicio, fin)
+    bt_volatilidad, stats_volatilidad = backtesting_portafolio(rendimientos_backtesting, pesos_volatilidad, inicio, fin)
+    bt_rendimiento, stats_rendimiento = backtesting_portafolio(rendimientos_backtesting, pesos_rendimiento, inicio, fin)
+    bt_iguales, stats_iguales = backtesting_portafolio(rendimientos_backtesting, pesos_iguales, inicio, fin)
+    bt_sp500, stats_sp500 = backtesting_portafolio(rendimientos_backtesting[["SPY"]], [1.0], inicio, fin)
 
-         # Gráfica de Rendimiento Acumulado
-        st.markdown(
-            """
-            <style>
-            .centered-small {
-                text-align: center;
-                font-size: 20px; 
-                font-weight: bold;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        # Texto centrado con tamaño más pequeño
-        st.markdown('<div class="centered-small">Rendimiento Acumulado</div>', unsafe_allow_html=True)
+    # Gráfica de Rendimiento Acumulado
+    st.markdown(
+        """
+        <style>
+        .centered-small {
+            text-align: center;
+            font-size: 18px; /* Ajusta el tamaño del texto */
+            font-size: 20px; 
+            font-weight: bold;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
-        
-        fig_bt = go.Figure()
-        fig_bt.add_trace(go.Scatter(
-            x=bt_sharpe.index,
-            y=bt_sharpe,
-            mode='lines',
-            name="Máximo Sharpe",
-            line=dict(color='#9df7e5')
-        ))
-        fig_bt.add_trace(go.Scatter(
-            x=bt_volatilidad.index,
-            y=bt_volatilidad,
-            mode='lines',
-            name="Mínima Volatilidad",
-            line=dict(color='#d90368')
-        ))
-        fig_bt.add_trace(go.Scatter(
-            x=bt_rendimiento.index,
-            y=bt_rendimiento,
-            mode='lines',
-            name="Mínima Volatilidad (Rendimiento 10%)",
-            line=dict(color='#5bc8af')
-        ))
-        fig_bt.add_trace(go.Scatter(
-            x=bt_iguales.index,
-            y=bt_iguales,
-            mode='lines',
-            name="Pesos Iguales",
-            line=dict(color='#af4d98')
-        ))
-        fig_bt.update_layout(
-            title=dict(text="Rendimiento Acumulado", font=dict(color='white')),
-            xaxis=dict(
-                title="Fecha",
-                titlefont=dict(color='white'),
-                tickfont=dict(color='white')
-            ),
-            yaxis=dict(
-                title="Rendimiento Acumulado",
-                titlefont=dict(color='white'),
-                tickfont=dict(color='white')
-            ),
-            plot_bgcolor='#1D1E2C',
-            paper_bgcolor='#1D1E2C',
+    # Texto centrado con tamaño más pequeño
+    st.markdown('<div class="centered-small">Rendimiento Acumulado</div>', unsafe_allow_html=True)
+
+
+
+
+    fig_bt = go.Figure()
+    fig_bt.add_trace(go.Scatter(
+        x=bt_sharpe.index,
+        y=bt_sharpe,
+        mode='lines',
+        name="Máximo Sharpe",
+        line=dict(color='#9df7e5')
+    ))
+    fig_bt.add_trace(go.Scatter(
+        x=bt_volatilidad.index,
+        y=bt_volatilidad,
+        mode='lines',
+        name="Mínima Volatilidad",
+        line=dict(color='#d90368')
+    ))
+    fig_bt.add_trace(go.Scatter(
+        x=bt_rendimiento.index,
+        y=bt_rendimiento,
+        mode='lines',
+        name="Mínima Volatilidad (Rendimiento 10%)",
+        line=dict(color='#5bc8af')
+    ))
+    fig_bt.add_trace(go.Scatter(
+        x=bt_iguales.index,
+        y=bt_iguales,
+        mode='lines',
+        name="Pesos Iguales",
+        line=dict(color='#af4d98')
+    ))
+    fig_bt.add_trace(go.Scatter(
+        x=bt_sp500.index,
+        y=bt_sp500,
+        mode='lines',
+        name="S&P 500",
+        line=dict(color='#FF6500')
+    ))
+    fig_bt.update_layout(
+        title=dict(text="Rendimiento Acumulado", font=dict(color='white')),
+        xaxis=dict(
+            title="Fecha",
+            titlefont=dict(color='white'),
+            tickfont=dict(color='white')
+        ),
+        yaxis=dict(
+            title="Rendimiento Acumulado",
+            titlefont=dict(color='white'),
+            tickfont=dict(color='white')
+        ),
+        plot_bgcolor='#1D1E2C',
+        paper_bgcolor='#1D1E2C',
+        font=dict(color='white'),
+        legend=dict(
             font=dict(color='white'),
-            legend=dict(
-                font=dict(color='white'),
-                bgcolor='#1D1E2C'
-            )
+            bgcolor='#1D1E2C'
         )
-        st.plotly_chart(fig_bt)
-        
-        # Mostrar estadísticas
-        st.markdown(
-            """
-            <style>
-            .centered-small {
-                text-align: center;
-                font-size: 20px; 
-                font-weight: bold;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        
-        # Texto centrado con tamaño más pequeño
-        st.markdown('<div class="centered-small">Métricas de Backtesting</div>', unsafe_allow_html=True)
+    )
+    st.plotly_chart(fig_bt)
 
-        # HTML para las métricas personalizadas
-        def render_metric(label, value, background_color, border_left_color, text_color="white"):
-            return f"""
-            <div style="background-color: {background_color}; color: {text_color}; padding: 10px; 
-                        border-radius: 10px; text-align: center; margin-bottom: 10px; 
-                        border-left: 6px solid {border_left_color};">
-                <h5 style="margin: 0; font-size: 18px;">{label}</h5>
-                <p style="margin: 0; font-size: 24px; font-weight: bold;">{value}</p>
-            </div>
-            """
+    # Mostrar estadísticas
+    # st.markdown("### Métricas de Backtesting")
+    st.markdown(
+        """
+        <style>
+        .centered-small {
+            text-align: center;
+            font-size: 20px; 
+            font-weight: bold;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    # Texto centrado con tamaño más pequeño
+    st.markdown('<div class="centered-small">Métricas de Backtesting</div>', unsafe_allow_html=True)
 
-        # Columnas principales
-        col1, col2 = st.columns(2)
+    # HTML para las métricas personalizadas
+    def render_metric(label, value, background_color, border_left_color, text_color="white"):
+        return f"""
+        <div style="background-color: {background_color}; color: {text_color}; padding: 10px; 
+                    border-radius: 10px; text-align: center; margin-bottom: 10px; 
+                    border-left: 6px solid {border_left_color};">
+            <h5 style="margin: 0; font-size: 18px;">{label}</h5>
+            <p style="margin: 0; font-size: 24px; font-weight: bold;">{value}</p>
+        </div>
+        """
 
-        # Columna 1: Máximo Sharpe y Mínima Volatilidad (en 3 boxes por fila cada uno)
-        with col1:
-            # Máximo Sharpe
-            st.markdown("#### Máximo Sharpe")
-            stats = stats_sharpe
-            # Dividir en filas de 3 métricas
-            for i in range(0, len(stats), 3):  
-                cols = st.columns(3)
-                for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                    with col:
-                        st.markdown(render_metric(label, f"{value:.2f}", background_color="#1F2C56", border_left_color="#F46197"), unsafe_allow_html=True)
+    # Columnas principales
+    col1, col2 = st.columns(2)
 
-            # Mínima Volatilidad
-            st.markdown("#### Mínima Volatilidad")
-            stats = stats_volatilidad
-            for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
-                cols = st.columns(3)
-                for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                    with col:
-                        st.markdown(render_metric(label, f"{value:.2f}", background_color="#da4167", border_left_color="#a2d2ff"), unsafe_allow_html=True)
+    # Columna 1: Máximo Sharpe, Mínima Volatilidad y S&P500 (en 3 boxes por fila cada uno)
+    with col1:
+        # Máximo Sharpe
+        st.markdown("#### Máximo Sharpe")
+        stats = stats_sharpe
+        # Dividir en filas de 3 métricas
+        for i in range(0, len(stats), 3):  
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#1F2C56", border_left_color="#F46197"), unsafe_allow_html=True)
 
-        # Columna 2: Mínima Volatilidad (Rendimiento 10%) y Pesos Iguales (en 3 boxes por fila cada uno)
-        with col2:
-            # Mínima Volatilidad (Rendimiento 10%)
-            st.markdown("#### Mínima Volatilidad (Rendimiento 10%)")
-            stats = stats_rendimiento
-            for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
-                cols = st.columns(3)
-                for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                    with col:
-                        st.markdown(render_metric(label, f"{value:.2f}", background_color="#8f2d56", border_left_color="#026c7c", text_color="black"), unsafe_allow_html=True)
+        # Mínima Volatilidad
+        st.markdown("#### Mínima Volatilidad")
+        stats = stats_volatilidad
+        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#da4167", border_left_color="#a2d2ff"), unsafe_allow_html=True)
 
-            # Pesos Iguales
-            st.markdown("#### Pesos Iguales")
-            stats = stats_iguales
-            for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
-                cols = st.columns(3)
-                for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                    with col:
-                        st.markdown(render_metric(label, f"{value:.2f}", background_color="#93e1d8", border_left_color="#8f2d56", text_color="black"), unsafe_allow_html=True)
+        # S&P500
+        st.markdown("#### S&P 500")
+        stats = stats_sp500
+        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#003161", border_left_color="#740938"), unsafe_allow_html=True)
 
+    # Columna 2: Mínima Volatilidad (Rendimiento 10%) y Pesos Iguales (en 3 boxes por fila cada uno)
+    with col2:
+        # Mínima Volatilidad (Rendimiento 10%)
+        st.markdown("#### Mínima Volatilidad (Rendimiento 10%)")
+        stats = stats_rendimiento
+        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#8f2d56", border_left_color="#026c7c", text_color="black"), unsafe_allow_html=True)
+
+        # Pesos Iguales
+        st.markdown("#### Pesos Iguales")
+        stats = stats_iguales
+        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
+            cols = st.columns(3)
+            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                with col:
+                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#93e1d8", border_left_color="#8f2d56", text_color="black"), unsafe_allow_html=True)
+
+    # Subheader centrado
+    st.markdown('<h3 class="centered">Conclusión</h3>', unsafe_allow_html=True)
+
+    st.write("Basándonos en los resultados del backtesting, este portafolio es sólido porque combina un rendimiento atractivo del 12% con una estructura de riesgo razonable. La relación riesgo-retorno es muy buena, como lo demuestra el ratio de Sharpe de 0.7 y el Sortino de 0.68. Además, los riesgos extremos, medidos por el VaR y el CVAR, son controlados para un portafolio expuesto al mercado accionario. Finalmente, el máximo drawdown está dentro de niveles típicos para inversiones de renta variable.")
+    st.write("En conclusión, este portafolio es una excelente elección para un inversor con tolerancia al riesgo moderada, interesado en obtener retornos por encima del promedio.")
 # Tab 4: Black-Litterman
 with tab4:
     st.markdown(
@@ -958,15 +982,15 @@ with tab4:
         # Expectativas de crecimiento para cada ETF
         st.subheader("Expectativas de Crecimiento por ETF")
         expectativas = {
-            "LQD": "Esperamos un crecimiento moderado por la baja de tasas de interés y su duración de 8.47 años.",
-            "EMB": "Buen crecimiento en mercados emergentes debido a políticas monetarias expansivas.",
-            "SPY": "Crecimiento respaldado por sectores como Tecnología y Consumo Discrecional.",
-            "EWZ": "Exposición a materias primas y sector financiero, alineado con demanda global.",
-            "IAU": "Oro como cobertura inflacionaria en un entorno de incertidumbre económica."
+            "LQD": "Esperamos buen crecimiento dado que tiene una duración de 8.47, donde aprovecharemos la baja esperada de tasas de interés en un periodo de 1 año, además de que el etf tiene un vencimiento promedio ponderado de 13.19 años donde casi una tercera parte del vencimiento de los bonos es de +20 años. Incluye Sectores Clave como Banca, Consumo no cíclico, Tecnología, Comunicaciones y Energía. Aunque no esperamos un rendimiento tal alto como el año pasado del 15%, si esperamos un buen rendimiento por los beneficios esperados de estos sectores debido a las políticas económicas del presidente electo Donald Trump done son políticas proteccionistas e inflacionarias. Proyección: 8%.",
+            "EMB": "Esperamos un buen crecimiento dado que el fondo tiene una duración de 7.17 beneficiada por la baja de tasad de interés en mercados emergentes, además de contener bonos gubernamentales mexicanos donde sabemos que la posición de la última minuta del Banco de México fue de seguir recortando en 25 puntos base la tasa e incluso se habló de recortarla en 50 puntos base, además de tener un vencimiento promedio ponderado de 11.9 añps donde casi una tercera parte (25.97%) tienen un vencimiento de +20 años. Proyección: 6.5%.",
+            "SPY": "Si bien la valuación de varias empresas dentro de este ínidice se encuentra en máximos históricos, seguimos esperando rendimientos alcistas por las políticas proteccionistas esperadas, donde creemos un alto crecimiento económico y altas utilidades por aquellas reformas fiscales que se plantean implementar, donde Tech se verá muy beneficiado y es donde estamos mayormente expuestos en el índice con un 31.66%, 13.62% en el Sector Financiero y 10.81% en Consumo Discrecional, donde sabemos que tiene una fuerte correlación con Tech. Proyección: 12%.",
+            "EWZ": "Con una gran exposición a materias primas y al sector financiero, se alinea a nuestro escenario base, donde la demanda global por commodities influirán en su desempeño y que tiene como otro factor clave que la economía brasileña depende en gran medida de las materias primas.  Proyección: 6%.",
+            "IAU": "Sabemos que las commodities funcionan como coberturas inflacionarias, además de que nos permiten diversificar nuestro portafolio, y en un ciclo económico inflacionario esperado, muchos bancos centrales suelen acumular reservas de oro como medida de estabilidad, impulsando la demanda. Al ser año de transición de gobierno en E.E.U.U. esperamos un crecimiento de la inflación moderada pero con perspectivas altas a futuro. Proyección: 5%."
         }
 
         for etf, expectativa in expectativas.items():
-            st.write(f"**{etf}:** {expectativa}")
+            st.write(f"{etf}:** {expectativa}")
 
         # Mostrar restricciones del portafolio
         st.subheader("Restricciones del Portafolio")
@@ -976,7 +1000,7 @@ with tab4:
         # Mostrar los pesos optimizados
         st.subheader("Pesos Ajustados del Portafolio Black-Litterman")
         for etf, peso in zip(etfs, pesos_black_litterman):
-            st.write(f"**{etf}:** {peso:.2%}")
+            st.write(f"{etf}:** {peso:.2%}")
 
         # Gráfica de pastel
         fig_bl = go.Figure(data=[
@@ -991,4 +1015,4 @@ with tab4:
         st.plotly_chart(fig_bl)
 
     except Exception as e:
-        st.error(f"Ocurrió un error en la optimización Black-Litterman: {e}")
+        st.error(f"Ocurrió un error en la optimización Black-Litterman: {e}")
