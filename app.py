@@ -592,16 +592,6 @@ with tab2:
 
         st.plotly_chart(fig_pastel)
 
-        if portafolio_seleccionado == "Mínima Volatilidad (Rendimiento 10% en MXN)":
-            st.subheader("Ajustes por Tipo de Cambio")
-            try:
-                tipo_cambio_medio = tipo_cambio.mean()
-                if isinstance(tipo_cambio_medio, pd.Series):
-                    tipo_cambio_medio = tipo_cambio_medio.iloc[0]
-                st.write(f"**Tipo de cambio medio esperado:** {tipo_cambio_medio:.2f} USD/MXN")
-            except Exception as e:
-                st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
-
     else:
         st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.")
 
