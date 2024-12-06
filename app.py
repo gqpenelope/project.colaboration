@@ -67,7 +67,7 @@ descripciones_etfs = {
         "indice": "MSCI Brazil Index",
         "moneda": "USD",
         "principales": ["Petrobras", "Vale", "Itaú Unibanco"],
-        "sectores": ["Energía", "Materiales", "Finanzas"],
+        "paises": "Brasil",
         "estilo": "Blend (Growth y Value)",
         "costos": "Comisión de administración: 0.58%"
     },
