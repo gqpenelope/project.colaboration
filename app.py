@@ -632,7 +632,7 @@ with tab3:
     )
 
     # Subheader centrado
-    st.markdown('<h3 class="centered">Precios Normalizados de los ETFs Seleccionados</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="centered">Precios Normalizados</h3>', unsafe_allow_html=True)
     precios_normalizados = datos / datos.iloc[0] * 100
 
     
@@ -687,7 +687,19 @@ with tab3:
 
 
     # Backtesting
-    st.subheader("Backtesting")
+    st.markdown(
+        """
+        <style>
+        .centered {
+            text-align: center;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Subheader centrado
+    st.markdown('<h3 class="centered">Backtesting</h3>', unsafe_allow_html=True)
 
     def backtesting_portafolio(rendimientos, pesos, inicio, fin, nivel_var=0.05):
         rendimientos_bt = rendimientos.loc[inicio:fin]
