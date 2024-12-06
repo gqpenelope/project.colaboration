@@ -29,7 +29,7 @@ st.markdown(
 st.title("Análisis y Optimización de Portafolios")
 
 # Definición de ETFs y ventanas de tiempo
-etfs = ['LQD', 'EMB', 'SPY', 'EWZ', 'IAU']
+etfs = ['LQD', 'EMB', 'SPY', 'EMXC', 'IAU']
 descripciones_etfs = {
     "LQD": {
         "nombre": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
@@ -39,7 +39,9 @@ descripciones_etfs = {
         "principales": ["JPMorgan Chase & Co", "Bank of America Corp", "Morgan Stanley"],
         "paises": "Estados Unidos y empresas multinacionales",
         "estilo": "Value",
-        "costos": "Comisión de administración: 0.14%"
+        "costos": "Comisión de administración: 0.14%",
+        "beta": "0.53",
+        "duracion": "8.45 años"
     },
     "EMB": {
         "nombre": "iShares J.P. Morgan USD Emerging Markets Bond ETF",
@@ -49,7 +51,9 @@ descripciones_etfs = {
         "principales": ["Turkey (Republic of)", "Saudi Arabia (Kingdom of)", "Brazil Federative Republic of"],
         "paises": "América Latina, Medio Oriente, África y Asia",
         "estilo": "Value",
-        "costos": "Comisión de administración: 0.39%"
+        "costos": "Comisión de administración: 0.39%",
+        "beta": "0.57",
+        "duracion": "7.04 años"
     },
     "SPY": {
         "nombre": "iShares Core S&P 500 ETF",
@@ -59,27 +63,33 @@ descripciones_etfs = {
         "principales": ["Apple Inc", "NVIDIA Corp", "Microsoft Corp"],
         "paises": "Estados Unidos",
         "estilo": "Mix(Growth/Value)",
-        "costos": "Comisión de administración: 0.03%"
+        "costos": "Comisión de administración: 0.03%",
+        "beta": "1.01",
+        "duracion": "NA"
     },
-    "EWZ": {
-        "nombre": "iShares MSCI Brazil ETF (EWZ)",
-        "exposicion": "Empresas brasileñas de gran y mediana capitalización.",
-        "indice": "MSCI Brazil Index",
+    "EMXC": {
+        "nombre": "iShares MSCI Emerging Markets ex China ETF",
+        "exposicion": "Empresas de mercados emergentes excluyendo China.",
+        "indice": "MSCI Emerging Markets ex China Index",
         "moneda": "USD",
-        "principales": ["Petrobras", "Vale", "Itaú Unibanco"],
-        "paises": "Brasil",
-        "estilo": "Blend (Growth y Value)",
-        "costos": "Comisión de administración: 0.58%"
+        "principales": ["Samsung Electronics", "Taiwan Semiconductor", "Infosys"],
+        "paises": "Corea del Sur, Taiwán, India, entre otros",
+        "estilo": "Growth",
+        "costos": "Comisión de administración: 0.25%",
+        "beta": "",
+        "duracion": ""
     },
     "IAU": {
         "nombre": "iShares Gold Trust",
         "exposicion": "Inversión en oro físico como cobertura inflacionaria.",
-        "indice": "N/A",
+        "indice": "LBMA Gold Price",
         "moneda": "USD",
-        "principales": ["N/A"],
+        "principales": ["NA"],
         "paises": "Global",
         "estilo": "Commodity",
-        "costos": "Comisión de administración: 0.25%"
+        "costos": "Comisión de administración: 0.25%",
+        "beta": "0.13",
+        "duracion": "NA"
     }
 }
 ventanas = {
@@ -105,7 +115,7 @@ with st.sidebar:
                 "color": "white",
                 "background-color": "#1D1E2C",
             },
-            "nav-link-selected": {"background-color": "#C4F5FC", "color": "white"},
+            "nav-link-selected": {"background-color": "#FFB703", "color": "white"},
         },
     )
 
@@ -152,14 +162,27 @@ def var_cvar(returns, confianza=0.95):
     CVaR = returns[returns <= VaR].mean()
     return VaR, CVaR
 
-# Función para calcular métricas
-def calcular_metricas(rendimientos):
+# Función para calcular métricas adicionales
+def calcular_metricas(rendimientos, benchmark=None, rf_rate=0.02):
+    # Métricas básicas
     media = rendimientos.mean() * 252  # Rendimiento anualizado
     volatilidad = rendimientos.std() * np.sqrt(252)  # Volatilidad anualizada
-    sharpe = media / volatilidad  # Ratio Sharpe
+    sharpe = (media - rf_rate) / volatilidad  # Ratio Sharpe
     sesgo = rendimientos.skew()  # Sesgo de los rendimientos
     curtosis = rendimientos.kurt()  # Curtosis de los rendimientos
     VaR, CVaR = var_cvar(rendimientos)
+    momentum = rendimientos[-252:].sum() if len(rendimientos) >= 252 else np.nan # Momentum: suma de rendimientos de los últimos 12 meses
+    
+    # Sortino Ratio
+    rendimientos_negativos = rendimientos[rendimientos < 0]
+    downside_deviation = np.sqrt((rendimientos_negativos ** 2).mean()) * np.sqrt(252)
+    sortino_ratio = media / downside_deviation if downside_deviation > 0 else np.nan
+    
+    # Drawdown
+    rendimiento_acumulado = (1 + rendimientos).cumprod()
+    max_acumulado = rendimiento_acumulado.cummax()
+    drawdown = (rendimiento_acumulado / max_acumulado - 1).min()
+
     return {
         "Media": media,
         "Volatilidad": volatilidad,
@@ -167,12 +190,15 @@ def calcular_metricas(rendimientos):
         "Sesgo": sesgo,
         "Curtosis": curtosis,
         "VaR": VaR,
-        "CVaR": CVaR
+        "CVaR": CVaR,
+        "Sortino Ratio": sortino_ratio,
+        "Drawdown": drawdown,
+        "Momentum": momentum,
     }
 
-# Calcular métricas para cada ETF
 metricas = {etf: calcular_metricas(rendimientos[etf]) for etf in etfs}
 metricas_df = pd.DataFrame(metricas).T  # Convertir a DataFrame para análisis tabular
+
 # Función para crear el histograma con hover interactivo
 def histog_distr(returns, var_95, cvar_95, title):
     # Crear el histograma base
@@ -181,7 +207,7 @@ def histog_distr(returns, var_95, cvar_95, title):
         x=returns,
         nbinsx=50,
         name="Distribución de rendimientos",
-        marker_color="#4CAF50",
+        marker_color="#2CA58D",
         opacity=0.75
     ))
 
@@ -190,7 +216,7 @@ def histog_distr(returns, var_95, cvar_95, title):
         x=var_95,
         line_width=3,
         line_dash="dash",
-        line_color="red"
+        line_color="#F46197"
     )
     fig.add_annotation(
         x=var_95,
@@ -200,7 +226,7 @@ def histog_distr(returns, var_95, cvar_95, title):
         arrowhead=2,
         ax=40,
         ay=-40,
-        font=dict(color="red")
+        font=dict(color="#F46197")
     )
 
     # Añadir línea del CVaR
@@ -208,7 +234,7 @@ def histog_distr(returns, var_95, cvar_95, title):
         x=cvar_95,
         line_width=3,
         line_dash="dash",
-        line_color="blue"
+        line_color="#FB8500"
     )
     fig.add_annotation(
         x=cvar_95,
@@ -218,7 +244,7 @@ def histog_distr(returns, var_95, cvar_95, title):
         arrowhead=2,
         ax=-40,
         ay=-40,
-        font=dict(color="blue")
+        font=dict(color="#FB8500")
     )
 
     # Configuración del diseño
@@ -235,12 +261,11 @@ def histog_distr(returns, var_95, cvar_95, title):
     return fig
 
 # Tab 1: Análisis de Activos Individuales
-# Tab 1: Análisis de Activos Individuales
 with tab1:
     st.markdown(
         """
         <div style="
-            background-color: #C4F5FC;
+            background-color: #FFB703;
             padding: 8px;
             border-radius: 20px;
             color: black;
@@ -255,21 +280,42 @@ with tab1:
     # Selección del ETF para análisis
     etf_seleccionado = st.selectbox("Selecciona un ETF para análisis:", options=etfs)
 
-    if etf_seleccionado:
-        if etf_seleccionado not in datos.columns or datos[etf_seleccionado].dropna().empty:
-            st.error(f"No hay datos disponibles para {etf_seleccionado} en la ventana seleccionada.")
-        else:
+    if etf_seleccionado not in datos.columns or datos[etf_seleccionado].dropna().empty:
+        st.error(f"No hay datos disponibles para {etf_seleccionado} en la ventana seleccionada.")
+    else:
+        with st.container():
             # Dividir en dos columnas
             col1, col2 = st.columns([3, 2])  # Relación 3:2 entre columnas izquierda y derecha
-
+            st.markdown(
+                """
+                <style>
+                .titulo-columnas {
+                    text-align: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: white;
+                    margin-bottom: 10px;
+                    min-height: 30px; 
+                .columna {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    height: 100%; /* Altura completa para igualar columnas */
+                }
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+            
             # Columna Izquierda
             with col1:
-                st.subheader("Características del ETF")
+                st.markdown('<div class="titulo-columnas">Características del ETF</div>', unsafe_allow_html=True)
+                
                 data = descripciones_etfs[etf_seleccionado]
 
                 # Tabla de características
                 tabla_caracteristicas = pd.DataFrame({
-                    "Características": ["Nombre", "Exposición", "Índice", "Moneda", "Principales Contribuyentes", "Países", "Estilo", "Costos"],
+                    "Características": ["Nombre", "Exposición", "Índice", "Moneda", "Principales Contribuyentes", "Países", "Estilo", "Costos", "Beta", "Duración"],
                     "Detalles": [
                         data["nombre"],
                         data["exposicion"],
@@ -278,11 +324,12 @@ with tab1:
                         ", ".join(data["principales"]),
                         data["paises"],
                         data["estilo"],
-                        data["costos"]
+                        data["costos"],
+                        data["beta"],
+                        data["duracion"]
                     ]
                 })
 
-                # Convertir el DataFrame a HTML y renderizarlo
                 tabla_html = tabla_caracteristicas.to_html(index=False, escape=False)
                 st.markdown(
                     """
@@ -290,29 +337,100 @@ with tab1:
                     table {
                         color: white;
                         background-color: transparent;
-                        border-collapse: collapse;
                         width: 100%;
+                        border-collapse: collapse;
+                        border: none;
                     }
                     th {
-                        background-color: #2CA58D;
-                        color: black;
+                        background-color: transparent;
+                        color: #2CA58D;
+                        font-size: 20px;
                         font-weight: bold;
                         text-align: center;
                         vertical-align: middle;
                     }
-                    td {
-                        border: 1px solid white;
+                    td {      
                         padding: 8px;
                         text-align: center;
+                        border-bottom: 1px solid white;
+                    }
+                    td,th {      
+                        border-left: none !important;;
+                        border-right: none !important;;
+                    }
+                    tr {      
+                        border-left: none !important;;
+                        border-right: none !important;;
                     }
                     </style>
                     """,
                     unsafe_allow_html=True
                 )
                 st.markdown(tabla_html, unsafe_allow_html=True)
+            # Columna Derecha
+            with col2:
+                st.markdown('<div class="titulo-columnas">Métricas Calculadas</div>', unsafe_allow_html=True)
 
-                # Gráfica de precios normalizados
-                st.subheader("Serie de Tiempo de Precios Normalizados")
+                # Métricas en boxes
+                style_metric_cards(background_color="#1F2C56", border_left_color="#F46197")
+                st.markdown(
+                    """
+                    <style>
+                    .metric-box {
+                        background-color: #1F2C56;
+                        color: white;
+                        padding: 20px;
+                        border-radius: 10px;
+                        text-align: center;
+                        margin-bottom: 10px;
+                        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+                    }
+                    .metric-container {
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: space-evenly; /* Distribución uniforme */
+                    }
+                    </style>
+                    """,
+                    unsafe_allow_html=True
+                )
+                metricas = calcular_metricas(rendimientos[etf_seleccionado])
+                
+                st.columns(3)
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric(label="Media", value=f"{metricas['Media']:.2f}")
+                with col2:
+                    st.metric(label="Volatilidad", value=f"{metricas['Volatilidad']:.2f}")
+                with col3:
+                    st.metric(label="Sharpe", value=f"{metricas['Sharpe']:.2f}")
+                
+                col4, col5,col6 = st.columns(3) 
+                with col4:
+                    st.metric(label="Sesgo", value=f"{metricas['Sesgo']:.2f}")
+                with col5:
+                    st.metric(label="Curtosis", value=f"{metricas['Curtosis']:.2f}")
+                with col6:
+                   st.metric(label="Sortino Ratio", value=f"{metricas['Sortino Ratio']:.2f}")
+                    
+                col7, col8, col9 = st.columns(3)
+                with col7:
+                    st.metric(label="VaR", value=f"{metricas['VaR']:.2f}")
+                with col8:
+                    st.metric(label="CVaR", value=f"{metricas['CVaR']:.2f}")
+                with col9:
+                    st.metric(label="Drawdown", value=f"{metricas['Drawdown']:.2f}")
+
+                col10 = st.columns(1)
+                st.metric(label="Momentum", value=f"{metricas['Momentum']:.2f}")
+
+        with st.container():
+            # Dividir en dos columnas
+            col1, col2 = st.columns(2)
+
+            with col1:
+                 # Gráfica de precios normalizados
+                st.markdown('<div class="titulo-columnas">Serie de Tiempo de Precios Normalizados</div>', unsafe_allow_html=True)
                 precios_normalizados = datos[etf_seleccionado] / datos[etf_seleccionado].iloc[0] * 100
                 fig_precios = go.Figure(go.Scatter(
                     x=precios_normalizados.index,
@@ -334,49 +452,10 @@ with tab1:
                 fig_precios.update_xaxes(showgrid=False)
                 fig_precios.update_yaxes(showgrid=False)
                 st.plotly_chart(fig_precios)
-
-            # Columna Derecha
+            
             with col2:
-                st.subheader("Métricas Calculadas")
-
-                # Métricas en boxes
-                style_metric_cards(background_color="#1F2C56", border_left_color="#F46197")
-                st.markdown(
-                    """
-                    <style>
-                    .metric-box {
-                        background-color: #1F2C56;
-                        color: white;
-                        padding: 20px;
-                        border-radius: 10px;
-                        text-align: center;
-                        margin-bottom: 10px;
-                        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
-                    }
-                    </style>
-                    """,
-                    unsafe_allow_html=True
-                )
-                metricas = calcular_metricas(rendimientos[etf_seleccionado])
-                st.columns(3)
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric(label="Media", value=f"{metricas['Media']:.2f}")
-                with col2:
-                    st.metric(label="Volatilidad", value=f"{metricas['Volatilidad']:.2f}")
-                with col3:
-                    st.metric(label="Sharpe", value=f"{metricas['Sharpe']:.2f}")
-
-                col4, col5, col6 = st.columns(3)
-                with col4:
-                    st.metric(label="Sesgo", value=f"{metricas['Sesgo']:.2f}")
-                with col5:
-                    st.metric(label="Curtosis", value=f"{metricas['Curtosis']:.2f}")
-                with col6:
-                    st.metric(label="VaR", value=f"{metricas['VaR']:.2f}")
-
                 # Histograma de rendimientos
-                st.subheader("Histograma de Rendimientos con VaR y CVaR")
+                st.markdown('<div class="titulo-columnas">Histograma de Rendimientos con VaR y CVaR</div>', unsafe_allow_html=True) 
                 var_95, cvar_95 = var_cvar(rendimientos[etf_seleccionado], confianza=0.95)
                 histograma = histog_distr(rendimientos[etf_seleccionado], var_95, cvar_95, f"Distribución de rendimientos para {etf_seleccionado}")
                 st.plotly_chart(histograma)
