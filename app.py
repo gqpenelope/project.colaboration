@@ -1208,22 +1208,22 @@ with tab4:
             with col2:
 
             # Gráfica de pastel
-            st.subheader("Gráfico de Pastel del Portafolio")
-            fig_bl = go.Figure(data=[
-                go.Pie(
-                    labels=etfs, 
-                    values=pesos_black_litterman, 
-                    hoverinfo='label+percent',
-                    marker=dict(colors=['#FB8500', '#2CA58D', '#84BC9C', '#F46197', '#FFB703'])  # Corrección de comillas
+                st.subheader("Gráfico de Pastel del Portafolio")
+                fig_bl = go.Figure(data=[
+                    go.Pie(
+                        labels=etfs, 
+                        values=pesos_black_litterman, 
+                        hoverinfo='label+percent',
+                        marker=dict(colors=['#FB8500', '#2CA58D', '#84BC9C', '#F46197', '#FFB703'])  # Corrección de comillas
+                    )
+                ])
+                fig_bl.update_layout(
+                    title="Distribución del Portafolio Ajustado - Black-Litterman",
+                    legend=dict(font=dict(color="white")),
+                    paper_bgcolor='#1D1E2C',
+                    font=dict(color='white')
                 )
-            ])
-            fig_bl.update_layout(
-                title="Distribución del Portafolio Ajustado - Black-Litterman",
-                legend=dict(font=dict(color="white")),
-                paper_bgcolor='#1D1E2C',
-                font=dict(color='white')
-            )
-            st.plotly_chart(fig_bl)
+                st.plotly_chart(fig_bl)
 
     
     except Exception as e:
