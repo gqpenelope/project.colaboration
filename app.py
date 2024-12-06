@@ -1129,7 +1129,7 @@ with tab4:
                         labels=etfs, 
                         values=pesos_black_litterman, 
                         hoverinfo='label+percent',
-                        marker=dict(colors=['red', 'brown', 'blue', 'green'])  # Colores personalizados
+                        marker=dict(colors=['#FB8500','#2CA58D', '#84BC9C',  '#F46197, '#FFB703'])  
                     ) 
                 ])
                 fig_bl.update_layout(
