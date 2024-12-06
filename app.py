@@ -767,7 +767,7 @@ with tab2:
             except Exception as e:
                 st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
     else:
-        st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.")
+        st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.") 
 # Tab 3: Comparación de Portafolios
 with tab3:
     st.markdown(
