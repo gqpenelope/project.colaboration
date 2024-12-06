@@ -556,6 +556,11 @@ with tab3:
 
     def backtesting_portafolio(rendimientos, pesos, inicio, fin, nivel_var=0.05):
         rendimientos_bt = rendimientos.loc[inicio:fin]
+    
+        if rendimientos_bt.empty or len(rendimientos_bt) < 1:  # Validar que haya datos
+            st.error(f"No hay datos suficientes para realizar el backtesting en la ventana seleccionada: {inicio} - {fin}.")
+            return pd.Series(dtype=float), {"Error": "Datos insuficientes"}  # Retornar valores vacíos
+    
         rendimientos_portafolio = rendimientos_bt.dot(pesos)
         rendimiento_acumulado = (1 + rendimientos_portafolio).cumprod()
 
@@ -567,7 +572,7 @@ with tab3:
         curtosis_portafolio = rendimientos_portafolio.kurt()
 
         # Cálculo de VaR y CVaR
-        var = np.percentile(rendimientos_portafolio, nivel_var * 100)
+        var = np.percentile(rendimientos_portafolio.dropna(), nivel_var * 100)
         cvar = rendimientos_portafolio[rendimientos_portafolio <= var].mean()
 
         # Sortino Ratio
@@ -575,7 +580,7 @@ with tab3:
         downside_deviation = np.sqrt((rendimientos_negativos ** 2).mean()) * np.sqrt(252)
         sortino_ratio = rendimiento_anualizado / downside_deviation
 
-        # Drawdown
+        #  Drawdown
         max_acumulado = rendimiento_acumulado.cummax()
         drawdown = (rendimiento_acumulado / max_acumulado - 1).min()
 
@@ -593,6 +598,7 @@ with tab3:
         }
 
         return rendimiento_acumulado, estadisticas
+
 
     # Parámetros del backtesting
     inicio = "2021-01-01"
@@ -625,12 +631,17 @@ with tab3:
     st.plotly_chart(fig_bt)
 
     # Mostrar estadísticas
+    # Mostrar estadísticas
     st.markdown("### Métricas de Backtesting")
     for nombre, stats in [("Máximo Sharpe", stats_sharpe), ("Mínima Volatilidad", stats_volatilidad), 
-                          ("Mínima Volatilidad (Rendimiento 10%)", stats_rendimiento), ("Pesos Iguales", stats_iguales)]:
+                      ("Mínima Volatilidad (Rendimiento 10%)", stats_rendimiento), ("Pesos Iguales", stats_iguales)]:
         st.markdown(f"**{nombre}:**")
         for key, value in stats.items():
-            st.metric(label=key, value=f"{value:.2f}")
+            if isinstance(value, (int, float)):  # Verifica si el valor es numérico
+                st.metric(label=key, value=f"{value:.2f}")
+            else:  # Si no es numérico, muestra el valor tal como está
+                st.metric(label=key, value=str(value))
+
 
 # Tab 4: Black-Litterman
 with tab4:
