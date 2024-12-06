@@ -754,7 +754,25 @@ with tab3:
     bt_iguales, stats_iguales = backtesting_portafolio(rendimientos, pesos_iguales, inicio, fin)
 
     # Gráfica de Rendimiento Acumulado
-    st.subheader("Rendimiento Acumulado")
+    st.markdown(
+        """
+        <style>
+        .centered-small {
+            text-align: center;
+            font-size: 18px; /* Ajusta el tamaño del texto */
+            font-weight: bold;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Texto centrado con tamaño más pequeño
+    st.markdown('<div class="centered-small">Rendimiento Acumulado</div>', unsafe_allow_html=True)
+
+
+
+    
     fig_bt = go.Figure()
     fig_bt.add_trace(go.Scatter(
         x=bt_sharpe.index,
