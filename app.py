@@ -476,9 +476,9 @@ with tab2:
         """,
         unsafe_allow_html=True,
     )
-
+    if selected == "2010-2020":
     # Función para optimizar portafolios
-    def optimizar_portafolio(rendimientos, objetivo="sharpe", rendimiento_objetivo=None, incluir_tipo_cambio=False):
+        def optimizar_portafolio(rendimientos, objetivo="sharpe", rendimiento_objetivo=None, incluir_tipo_cambio=False):
             media = rendimientos.mean() * 252
             covarianza = rendimientos.cov() * 252
             num_activos = len(media)
