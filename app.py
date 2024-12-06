@@ -599,6 +599,62 @@ with tab2:
             "Mínima Volatilidad (Rendimiento 10% en MXN)": pesos_rendimiento
         }, index=etfs)
 
+        def metricas_portafolio(rendimientos, pesos, inicio, fin, nivel_var=0.05):
+            rendimientos_bt = rendimientos.loc[inicio:fin]
+            rendimientos_portafolio = rendimientos_bt.dot(pesos)
+            rendimiento_acumulado = (1 + rendimientos_portafolio).cumprod()
+
+            # Estadísticas básicas
+            rendimiento_anualizado = (1 + rendimientos_portafolio.mean()) ** 252 - 1
+            volatilidad_anualizada = rendimientos_portafolio.std() * np.sqrt(252)
+            sharpe_ratio = rendimiento_anualizado / volatilidad_anualizada
+            sesgo_portafolio = rendimientos_portafolio.skew()
+            curtosis_portafolio = rendimientos_portafolio.kurt()
+
+            # Cálculo de VaR y CVaR
+            var = np.percentile(rendimientos_portafolio, nivel_var * 100)
+            cvar = rendimientos_portafolio[rendimientos_portafolio <= var].mean()
+
+            # Sortino Ratio
+            rendimientos_negativos = rendimientos_portafolio[rendimientos_portafolio < 0]
+            downside_deviation = np.sqrt((rendimientos_negativos ** 2).mean()) * np.sqrt(252)
+            sortino_ratio = rendimiento_anualizado / downside_deviation
+
+            # Drawdown
+            max_acumulado = rendimiento_acumulado.cummax()
+            drawdown = (rendimiento_acumulado / max_acumulado - 1).min()
+
+            # Diccionario con todas las estadísticas
+            estadisticas = {
+                "Rendimiento Anualizado": rendimiento_anualizado,
+                "Volatilidad Anualizada": volatilidad_anualizada,
+                "Ratio de Sharpe": sharpe_ratio,
+                "Sesgo": sesgo_portafolio,
+                "Curtosis": curtosis_portafolio,
+                "VaR ({}%)".format(int(nivel_var * 100)): var,
+                "CVaR ({}%)".format(int(nivel_var * 100)): cvar,
+                "Sortino Ratio": sortino_ratio,
+                "Máximo Drawdown": drawdown
+            }
+
+            return estadisticas
+
+        # Parámetros de la creación de portafolios
+        inicio = "2010-01-01"
+        fin = "2020-12-31"
+
+        # Métricas
+        stats_sharpe_portafolio = metricas_portafolio(rendimientos, pesos_sharpe, inicio, fin)
+        stats_volatilidad_portafolio = metricas_portafolio(rendimientos, pesos_volatilidad, inicio, fin)
+        stats_rendimiento_portafolio = metricas_portafolio(rendimientos, pesos_rendimiento, inicio, fin)
+
+        # Mostrar las metricas
+        metricas_portafolio_df = pd.DataFrame({
+            "Máximo Sharpe": stats_sharpe_portafolio,
+            "Mínima Volatilidad": stats_volatilidad_portafolio,
+            "Mínima Volatilidad (Rendimiento 10% en MXN)": stats_rendimiento_portafolio
+        })
+
         # Visualización de portafolios optimizados
         portafolio_seleccionado = st.selectbox(
             "Selecciona el portafolio a visualizar:",
@@ -637,40 +693,69 @@ with tab2:
 
         st.plotly_chart(fig_barras)
 
-        # Gráfica de pastel
-        st.subheader("Composición del Portafolio")
+        # HTML para las métricas personalizadas
+        def render_metric(label, value, background_color, border_left_color, text_color="white"):
+            return f"""
+            <div style="background-color: {background_color}; color: {text_color}; padding: 10px; 
+                        border-radius: 10px; text-align: center; margin-bottom: 10px; 
+                        border-left: 6px solid {border_left_color};">
+                <h5 style="margin: 0; font-size: 18px;">{label}</h5>
+                <p style="margin: 0; font-size: 24px; font-weight: bold;">{value}</p>
+            </div>
+            """
 
-        valores_redondeados = [round(peso, 6) if peso > 1e-6 else 0 for peso in pesos_df[portafolio_seleccionado]]
-        etiquetas = [
-            f"{etf} ({peso:.6f})" if peso > 0 else f"{etf} (<1e-6)"
-            for etf, peso in zip(etfs, pesos_df[portafolio_seleccionado])
-        ]
+        with st.container():
+            # Dividir en dos columnas
+            col1, col2 = st.columns(2)
 
-        fig_pastel = go.Figure(data=[
-            go.Pie(
-                labels=etiquetas,
-                values=valores_redondeados,
-                hoverinfo='label+percent+value',
-                textinfo='percent',
-                marker=dict(colors=['#2CA58D', '#F46197', '#84BC9C', '#FFD700', '#497076'])
-            )
-        ])
+            with col1:
 
-        fig_pastel.update_layout(
-            title=dict(
-                text=f"Distribución del Portafolio ({portafolio_seleccionado})",
-                font=dict(color='white')
-            ),
-            legend=dict(
-                font=dict(color='white'),
-                bgcolor='rgba(0,0,0,0)'
-            ),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white')
-        )
+                # Gráfica de pastel
+                st.subheader("Composición del Portafolio")
 
-        st.plotly_chart(fig_pastel)
+                valores_redondeados = [round(peso, 6) if peso > 1e-6 else 0 for peso in pesos_df[portafolio_seleccionado]]
+                etiquetas = [
+                    f"{etf} ({peso:.6f})" if peso > 0 else f"{etf} (<1e-6)"
+                    for etf, peso in zip(etfs, pesos_df[portafolio_seleccionado])
+                ]
+
+                fig_pastel = go.Figure(data=[
+                    go.Pie(
+                        labels=etiquetas,
+                        values=valores_redondeados,
+                        hoverinfo='label+percent+value',
+                        textinfo='percent',
+                        marker=dict(colors=['#2CA58D', '#F46197', '#84BC9C', '#FFD700', '#497076'])
+                    )
+                ])
+
+                fig_pastel.update_layout(
+                    title=dict(
+                        text=f"Distribución del Portafolio ({portafolio_seleccionado})",
+                        font=dict(color='white')
+                    ),
+                    legend=dict(
+                        font=dict(color='white'),
+                        bgcolor='rgba(0,0,0,0)'
+                    ),
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color='white')
+                )
+
+                st.plotly_chart(fig_pastel)
+
+            with col2:
+
+                st.subheader("Métricas del Portafolio")
+
+                stats = metricas_portafolio_df[portafolio_seleccionado]
+                # Dividir en filas de 3 métricas
+                for i in range(0, len(stats), 3):  
+                    cols = st.columns(3)
+                    for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                        with col:
+                            st.markdown(render_metric(label, f"{value:.2f}", background_color="#1F2C56", border_left_color="#F46197"), unsafe_allow_html=True)    
 
         if portafolio_seleccionado == "Mínima Volatilidad (Rendimiento 10% en MXN)":
             st.subheader("Ajustes por Tipo de Cambio")
@@ -683,7 +768,6 @@ with tab2:
                 st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
     else:
         st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.")
-
 # Tab 3: Comparación de Portafolios
 with tab3:
     st.markdown(
