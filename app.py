@@ -76,8 +76,8 @@ descripciones_etfs = {
         "paises": "Brasil",
         "estilo": "Blend (Growth y Value)",
         "costos": "Comisión de administración: 0.58%",
-        "beta": "",
-        "duracion": ""
+        "beta": "0.9",
+        "duracion": "NA"
     },
     "IAU": {
         "nombre": "iShares Gold Trust",
