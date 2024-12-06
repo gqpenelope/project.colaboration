@@ -476,8 +476,9 @@ with tab2:
         """,
         unsafe_allow_html=True,
     )
+
     if selected == "2010-2020":
-    # Función para optimizar portafolios
+        # Función para optimizar portafolios
         def optimizar_portafolio(rendimientos, objetivo="sharpe", rendimiento_objetivo=None, incluir_tipo_cambio=False):
             media = rendimientos.mean() * 252
             covarianza = rendimientos.cov() * 252
@@ -600,6 +601,7 @@ with tab2:
                 st.write(f"**Tipo de cambio medio esperado:** {tipo_cambio_medio:.2f} USD/MXN")
             except Exception as e:
                 st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
+
     else:
         st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.")
 
