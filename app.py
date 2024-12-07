@@ -696,7 +696,7 @@ with tab2:
         st.plotly_chart(fig_barras)
 
         # HTML para las métricas personalizadas
-        def render_metric(label, value, background_color, border_left_color, text_color="white"):
+        def render_metric(label, value, background_color, border_left_color, text_color="white", border_color):
             return f"""
             <div style="background-color: {background_color}; color: {text_color}; padding: 10px; 
                         border-radius: 10px; text-align: center; margin-bottom: 10px; 
