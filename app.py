@@ -1149,7 +1149,55 @@ with tab4:
             "EWZ": "Con una gran exposición a materias primas y al sector financiero, se alinea a nuestro escenario base, donde la demanda global por commodities influirán en su desempeño y que tiene como otro factor clave que la economía brasileña depende en gran medida de las materias primas.  Proyección: 6%.",
             "IAU": "Sabemos que las commodities funcionan como coberturas inflacionarias, además de que nos permiten diversificar nuestro portafolio, y en un ciclo económico inflacionario esperado, muchos bancos centrales suelen acumular reservas de oro como medida de estabilidad, impulsando la demanda. Al ser año de transición de gobierno en E.E.U.U. esperamos un crecimiento de la inflación moderada pero con perspectivas altas a futuro. Proyección: 5%."
         }
-        
+
+        # Convertimos las expectativas en un DataFrame
+        df_expectativas = pd.DataFrame(
+            [{"ETF": etf, "Expectativa": expectativa} for etf, expectativa in expectativas.items()]
+        )
+
+        tabla_html_BL = df_expectativas.to_html(index=False, escape=False)
+        st.markdown(
+            """
+            <style>
+            table {
+                color: white;
+                background-color: transparent;
+                width: 100%;
+                border-collapse: collapse;
+                border: none;
+            }
+            th {
+                background-color: transparent;
+                color: #2CA58D;
+                font-size: 20px;
+                font-weight: bold;
+                text-align: justify;
+                vertical-align: middle;
+            }
+            td {      
+                padding: 8px;
+                text-align: justify;
+                border-bottom: 1px solid white;
+            }
+            td,th {      
+                border-left: none !important;;
+                border-right: none !important;;
+            }
+            tr {      
+                border-left: none !important;;
+                border-right: none !important;;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown(tabla_html_BL, unsafe_allow_html=True)
+
+        with st.container():
+            # Dividir en dos columnas
+            col1, col2 = st.columns(2)  
+
+            with col1:
                 # Mostrar los pesos optimizados
                 st.subheader("Pesos Ajustados del Portafolio Black-Litterman")
                 for etf, peso in zip(etfs, pesos_black_litterman):
@@ -1160,8 +1208,8 @@ with tab4:
                 st.write("- Peso mínimo por activo: 3.5%")
                 st.write("- Peso máximo por activo: 40%")
 
+            
             with col2:
-
             # Gráfica de pastel
                 st.subheader("Gráfico de Pastel del Portafolio")
                 fig_bl = go.Figure(data=[
