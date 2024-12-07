@@ -696,7 +696,7 @@ with tab2:
         st.plotly_chart(fig_barras)
 
         # HTML para las métricas personalizadas
-        def render_metric(label, value, background_color, border_left_color, text_color="white", border):
+        def render_metric(label, value, background_color, border_left_color, text_color="white"):
             return f"""
             <div style="background-color: {background_color}; color: {text_color}; padding: 10px; 
                         border-radius: 10px; text-align: center; margin-bottom: 10px; 
@@ -758,7 +758,7 @@ with tab2:
                     cols = st.columns(3)
                     for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
                         with col:
-                            st.markdown(render_metric(label, f"{value:.2f}", background_color="#1F2C56", border_left_color="#F46197", border="#FFFFFF"), unsafe_allow_html=True)    
+                            st.markdown(render_metric(label, f"{value:.2f}", background_color="#1F2C56", border_left_color="#F46197"), unsafe_allow_html=True)    
 
         if portafolio_seleccionado == "Mínima Volatilidad (Rendimiento 10% en MXN)":
             st.subheader("Ajustes por Tipo de Cambio")
