@@ -532,6 +532,7 @@ with tab2:
         """,
         unsafe_allow_html=True,
     )
+    st.subheader("Se toman en cuenta únicamente los rendimientos del 2010 al 2020")
 
     if True:
         # Función para optimizar portafolios
@@ -761,6 +762,7 @@ with tab3:
         """,
         unsafe_allow_html=True,
     )
+    st.subheader("Se evaluaron los portafolios anteriores con los datos del 2021 al 2023")
 
     # Comparación de Precios Normalizados
     st.markdown(
