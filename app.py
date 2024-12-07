@@ -380,7 +380,7 @@ with tab1:
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 100%; /* Altura completa para igualar columnas */
+            height: 100%; 
         }
         </style>
         """,
@@ -452,7 +452,7 @@ with tab1:
         st.markdown('<div class="titulo-columnas">Métricas Calculadas</div>', unsafe_allow_html=True)
 
         # Métricas en boxes
-        style_metric_cards(background_color="#84BC9C", border_left_color="#F46197")
+        style_metric_cards(background_color="#1F2C56", border_left_color="#F46197")
         st.markdown(
             """
             <style>
