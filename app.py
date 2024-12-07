@@ -1198,10 +1198,52 @@ with tab4:
             col1, col2 = st.columns(2)  
 
             with col1:
-                # Mostrar los pesos optimizados
+                # Crear un DataFrame con los pesos ajustados
+                df_pesos_ajustados = pd.DataFrame({
+                    "ETF": etfs,
+                    "Peso Ajustado (%)": [f"{peso * 100:.2f}%" for peso in pesos_black_litterman]
+                })
+
+                # Convertir el DataFrame a HTML para mostrarlo en Streamlit
+                tabla_pesos_ajustados_html = df_pesos_ajustados.to_html(index=False, escape=False)
+
                 st.subheader("Pesos Ajustados del Portafolio Black-Litterman")
-                for etf, peso in zip(etfs, pesos_black_litterman):
-                    st.write(f"{etf}:** {peso:.2%}")
+                st.markdown(
+                    """
+                    <style>
+                    table {
+                        color: white;
+                        background-color: transparent;
+                        width: 100%;
+                        border-collapse: collapse;
+                        border: none;
+                    }
+                    th {
+                        background-color: transparent;
+                        color: #2CA58D;
+                        font-size: 20px;
+                        font-weight: bold;
+                        text-align: center;
+                        vertical-align: middle;
+                    }
+                    td {      
+                        padding: 8px;
+                        text-align: center;
+                        border-bottom: 1px solid white;
+                    }
+                    td,th {      
+                        border-left: none !important;
+                        border-right: none !important;
+                    }
+                    tr {      
+                        border-left: none !important;
+                        border-right: none !important;
+                    }
+                    </style>
+                    """,
+                    unsafe_allow_html=True
+                )
+                st.markdown(tabla_pesos_ajustados_html, unsafe_allow_html=True)
 
                 # Mostrar restricciones del portafolio
                 st.subheader("Restricciones del Portafolio")
