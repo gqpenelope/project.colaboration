@@ -1064,11 +1064,26 @@ with tab3:
         with col2:
             st.warning("Selecciona una o más portafolios para ver las estadísticas.")
 
-    # Subheader centrado
-    st.markdown('<h3 class="centered">Conclusión</h3>', unsafe_allow_html=True)
-
-    st.write("Basándonos en los resultados del backtesting, este portafolio es sólido porque combina un rendimiento atractivo del 12% con una estructura de riesgo razonable. La relación riesgo-retorno es muy buena, como lo demuestra el ratio de Sharpe de 0.7 y el Sortino de 0.68. Además, los riesgos extremos, medidos por el VaR y el CVAR, son controlados para un portafolio expuesto al mercado accionario. Finalmente, el máximo drawdown está dentro de niveles típicos para inversiones de renta variable.")
-    st.write("En conclusión, este portafolio es una excelente elección para un inversor con tolerancia al riesgo moderada, interesado en obtener retornos por encima del promedio.")
+# Tabla en HTML
+    st.markdown(
+        """
+            <table style="width:100%; border-collapse: collapse; text-align: center; border: 1px solid #ddd;">
+            <tr style="background-color: #f2f2f2;">
+                <th style="padding: 20px; text-align: center; font-size: 18px;">CONCLUSIÓN</th>
+            </tr>
+            <tr>
+                <td style="padding: 15px; text-align: left; font-size: 16px;">
+                    Basándonos en los resultados del backtesting, este portafolio es sólido porque combina un rendimiento atractivo del 12% con una estructura de riesgo razonable. 
+                    La relación riesgo-retorno es muy buena, como lo demuestra el ratio de Sharpe de 0.7 y el Sortino de 0.68. 
+                    Además, los riesgos extremos, medidos por el VaR y el CVAR, son controlados para un portafolio expuesto al mercado accionario. 
+                    Finalmente, el máximo drawdown está dentro de niveles típicos para inversiones de renta variable.<br><br>
+                    En conclusión, este portafolio es una excelente elección para un inversor con tolerancia al riesgo moderada, interesado en obtener retornos por encima del promedio.
+                </td>
+            </tr>
+        </table>
+        """,
+        unsafe_allow_html=True
+    )
 # Tab 4: Black-Litterman
 with tab4:
     st.markdown(
