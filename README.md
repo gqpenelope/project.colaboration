@@ -1,5 +1,5 @@
 Equipo:\
-Blancas Lopez Valentina\
-Garcia Quiroz Penelope Itzel\
-Lopes Morales Patricio Sebastian\
-Ventre Rodrigo Ruiz
+Blancas López Valentina\
+García Quiroz Penélope Itzel\
+López Morales Patricio Sebastián\
+Ventre Ruiz Rodrigo
