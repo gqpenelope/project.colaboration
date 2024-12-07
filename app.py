@@ -700,8 +700,7 @@ with tab2:
             return f"""
             <div style="background-color: {background_color}; color: {text_color}; padding: 10px; 
                         border-radius: 10px; text-align: center; margin-bottom: 10px; 
-                        border-left: 6px solid {border_left_color};
-                        border:2px solid {border_color}">
+                        border-left: 6px solid {border_left_color};">
                 <h5 style="margin: 0; font-size: 18px;">{label}</h5>
                 <p style="margin: 0; font-size: 24px; font-weight: bold;">{value}</p>
             </div>
