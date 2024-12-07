@@ -285,7 +285,7 @@ with tab1:
     st.markdown(
         """
         <style>
-        /* Centrar el título */
+        # Centrar el título 
         .stRadio > label {
             display: block;
             text-align: center;
@@ -300,7 +300,7 @@ with tab1:
             gap: 10px;
         }
     
-        /* Botones sin seleccionar */
+        # Botones sin seleccionar 
         div[role="radiogroup"] > label {
             background-color: #F46197;
             color: #1D1E2C !important;
@@ -313,12 +313,12 @@ with tab1:
             text-align: center;
         }
     
-        /* Texto y contenido del botón */
+        # Texto y contenido del botón 
         div[role="radiogroup"] > label > div {
             color: #1D1E2C !important;
         }
     
-        /* Botón seleccionado */
+        # Botón seleccionado 
         div[role="radiogroup"] > label[data-selected="true"] {
             background-color: #FFB703 !important;
             color: #1D1E2C !important;
@@ -326,18 +326,18 @@ with tab1:
             font-weight: bold;
         }
     
-        /* Texto y contenido del botón seleccionado */
+        # Texto y contenido del botón seleccionado 
         div[role="radiogroup"] > label[data-selected="true"] > div {
             color: #1D1E2C !important;
         }
     
-        /* Hover sobre botones no seleccionados */
+        # Hover sobre botones no seleccionados 
         div[role="radiogroup"] > label:hover {
             background-color: #FFE5A1 !important; /* Color de fondo en hover */
             color: #1D1E2C !important;
         }
     
-        /* Hover sobre el texto y punto del botón */
+        # Hover sobre el texto y punto del botón 
         div[role="radiogroup"] > label:hover > div {
             color: #1D1E2C !important;
         }
@@ -357,6 +357,7 @@ with tab1:
     
     # Filtrar datos según la ventana seleccionada
     start_date, end_date = ventanas[ventana_tiempo]
+    
     # Obtener datos y rendimientos para cada ETF
     datos = obtener_datos(etfs, start_date, end_date)
     rendimientos_indiv = datos.pct_change().dropna()
@@ -365,7 +366,7 @@ with tab1:
     etf_seleccionado = st.selectbox("Selecciona un ETF para análisis:", options=etfs)
 
     # Dividir en dos columnas
-    col1, col2 = st.columns([3, 2])  # Relación 3:2 entre columnas izquierda y derecha
+    col1, col2 = st.columns([3, 2])  
     st.markdown(
         """
         <style>
@@ -447,6 +448,7 @@ with tab1:
             unsafe_allow_html=True
         )
         st.markdown(tabla_html, unsafe_allow_html=True)
+        
     # Columna Derecha
     with col2:
         st.markdown('<div class="titulo-columnas">Métricas Calculadas</div>', unsafe_allow_html=True)
@@ -1087,7 +1089,8 @@ with tab3:
 
     st.write("Basándonos en los resultados del backtesting, este portafolio es sólido porque combina un rendimiento atractivo del 12% con una estructura de riesgo razonable. La relación riesgo-retorno es muy buena, como lo demuestra el ratio de Sharpe de 0.7 y el Sortino de 0.68. Además, los riesgos extremos, medidos por el VaR y el CVAR, son controlados para un portafolio expuesto al mercado accionario. Finalmente, el máximo drawdown está dentro de niveles típicos para inversiones de renta variable.")
     st.write("En conclusión, este portafolio es una excelente elección para un inversor con tolerancia al riesgo moderada, interesado en obtener retornos por encima del promedio.")
-# Tab 4: Black-Litterman
+
+
 # Tab 4: Black-Litterman
 with tab4:
     st.markdown(
@@ -1110,7 +1113,8 @@ with tab4:
         media_rendimientos = rendimientos.mean() * 252
         covarianza_rendimientos = rendimientos.cov() * 252
         P = np.eye(len(etfs))  # Views: una opinión por ETF
-        Q = np.array([0.08, 0.065, 0.12, 0.06, 0.05])  # Opiniones esperadas (rendimientos)
+        # Opiniones esperadas (rendimientos)
+        Q = np.array([0.08, 0.065, 0.12, 0.06, 0.05])  
 
         def black_litterman_optimizar(media_rendimientos, covarianza_rendimientos, P, Q, tau=0.05):
             pi = media_rendimientos
@@ -1145,6 +1149,54 @@ with tab4:
             "EWZ": "Con una gran exposición a materias primas y al sector financiero, se alinea a nuestro escenario base, donde la demanda global por commodities influirán en su desempeño y que tiene como otro factor clave que la economía brasileña depende en gran medida de las materias primas.  Proyección: 6%.",
             "IAU": "Sabemos que las commodities funcionan como coberturas inflacionarias, además de que nos permiten diversificar nuestro portafolio, y en un ciclo económico inflacionario esperado, muchos bancos centrales suelen acumular reservas de oro como medida de estabilidad, impulsando la demanda. Al ser año de transición de gobierno en E.E.U.U. esperamos un crecimiento de la inflación moderada pero con perspectivas altas a futuro. Proyección: 5%."
         }
+        
+        # Crear una tabla personalizada con los pesos ajustados
+        st.markdown(
+            """
+            <style>
+            .table-bl {
+                width: 100%;
+                border-collapse: collapse;
+                background-color: #1E1E1E;
+                color: white;
+            }
+            .table-bl th {
+                background-color: #2CA58D;
+                color: white;
+                font-weight: bold;
+                padding: 10px;
+                text-align: left;
+            }
+            .table-bl td {
+                padding: 10px;
+                text-align: left;
+                border-bottom: 1px solid #444444;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Construir la tabla en HTML
+        tabla_html_bl = """
+        <table class="table-bl">
+            <tr>
+                <th>Características</th>
+                <th>Detalles</th>
+            </tr>
+        """
+        for etf, peso in zip(etfs, pesos_black_litterman):
+            tabla_html_bl += f"""
+            <tr>
+                <td>{etf}</td>
+                <td>{peso:.2%}</td>
+            </tr>
+            """
+        tabla_html_bl += "</table>"
+
+        # Mostrar la tabla en Streamlit
+        st.markdown(tabla_html_bl, unsafe_allow_html=True)
+
 
         # Convertimos las expectativas en un DataFrame
         df_expectativas = pd.DataFrame(
@@ -1191,7 +1243,7 @@ with tab4:
 
         with st.container():
             # Dividir en dos columnas
-            col1, col2 = st.columns(2)  # Relación 4:2 entre columnas izquierda y derecha
+            col1, col2 = st.columns(2)  
 
             with col1:
 
