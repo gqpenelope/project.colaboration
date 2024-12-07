@@ -667,7 +667,7 @@ with tab2:
             go.Bar(
                 x=pesos_df.index,
                 y=pesos_df[portafolio_seleccionado],
-                marker_color='#FFB703'
+                marker_color='#84BC9C'
             )
         ])
 
