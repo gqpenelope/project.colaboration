@@ -97,29 +97,6 @@ ventanas = {
     "2010-2020": ("2010-01-01", "2020-12-31"),
     "2021-2023": ("2021-01-01", "2023-12-31")
 }
-# Menú lateral para seleccionar ventana de tiempo
-# with st.sidebar:
-    # selected = option_menu(
-    #     menu_title="Ventana",
-    #     options=list(ventanas.keys()),
-    #     icons=["calendar", "calendar-range", "calendar3"],
-    #     menu_icon="gear",
-    #     default_index=0,
-    #     styles={
-    #         "container": {"padding": "5px", "background-color": "#1D1E2C"},
-    #         "icon": {"color": "white", "font-size": "25px"},
-    #         "nav-link": {
-    #             "font-size": "16px",
-    #             "text-align": "left",
-    #             "margin": "0px",
-    #             "color": "white",
-    #             "background-color": "#1D1E2C",
-    #         },
-    #         "nav-link-selected": {"background-color": "#FFB703", "color": "white"},
-    #     },
-    # )
-
-#start_date, end_date = ventanas[selected]
 
 # Tabs de la aplicación
 st.markdown(
@@ -169,7 +146,7 @@ def var_cvar(returns, confianza=0.95):
     return VaR, CVaR
 
 # Función para calcular métricas
-def calcular_metricas(rendimientos, benchmark=None, rf_rate=0.02):
+def calcular_metricas(rendimientos, rf_rate=0.02):
     # Métricas básicas
     media = rendimientos.mean() * 252  # Rendimiento anualizado
     volatilidad = rendimientos.std() * np.sqrt(252)  # Volatilidad anualizada
@@ -285,7 +262,7 @@ with tab1:
     st.markdown(
         """
         <style>
-        # Centrar el título 
+        /* Centrar el título */
         .stRadio > label {
             display: block;
             text-align: center;
@@ -300,7 +277,7 @@ with tab1:
             gap: 10px;
         }
     
-        # Botones sin seleccionar 
+        /* Botones sin seleccionar */
         div[role="radiogroup"] > label {
             background-color: #F46197;
             color: #1D1E2C !important;
@@ -313,12 +290,12 @@ with tab1:
             text-align: center;
         }
     
-        # Texto y contenido del botón 
+        /* Texto y contenido del botón */
         div[role="radiogroup"] > label > div {
             color: #1D1E2C !important;
         }
     
-        # Botón seleccionado 
+        /* Botón seleccionado */
         div[role="radiogroup"] > label[data-selected="true"] {
             background-color: #FFB703 !important;
             color: #1D1E2C !important;
@@ -326,18 +303,18 @@ with tab1:
             font-weight: bold;
         }
     
-        # Texto y contenido del botón seleccionado 
+        /* Texto y contenido del botón seleccionado */
         div[role="radiogroup"] > label[data-selected="true"] > div {
             color: #1D1E2C !important;
         }
     
-        # Hover sobre botones no seleccionados 
+        /* Hover sobre botones no seleccionados */
         div[role="radiogroup"] > label:hover {
             background-color: #FFE5A1 !important; /* Color de fondo en hover */
             color: #1D1E2C !important;
         }
     
-        # Hover sobre el texto y punto del botón 
+        /* Hover sobre el texto y punto del botón */
         div[role="radiogroup"] > label:hover > div {
             color: #1D1E2C !important;
         }
@@ -357,7 +334,6 @@ with tab1:
     
     # Filtrar datos según la ventana seleccionada
     start_date, end_date = ventanas[ventana_tiempo]
-    
     # Obtener datos y rendimientos para cada ETF
     datos = obtener_datos(etfs, start_date, end_date)
     rendimientos_indiv = datos.pct_change().dropna()
@@ -366,7 +342,7 @@ with tab1:
     etf_seleccionado = st.selectbox("Selecciona un ETF para análisis:", options=etfs)
 
     # Dividir en dos columnas
-    col1, col2 = st.columns([3, 2])  
+    col1, col2 = st.columns([3, 2])  # Relación 3:2 entre columnas izquierda y derecha
     st.markdown(
         """
         <style>
@@ -381,7 +357,7 @@ with tab1:
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 100%; 
+            height: 100%; /* Altura completa para igualar columnas */
         }
         </style>
         """,
@@ -448,7 +424,6 @@ with tab1:
             unsafe_allow_html=True
         )
         st.markdown(tabla_html, unsafe_allow_html=True)
-        
     # Columna Derecha
     with col2:
         st.markdown('<div class="titulo-columnas">Métricas Calculadas</div>', unsafe_allow_html=True)
@@ -540,7 +515,6 @@ with tab1:
         var_95, cvar_95 = var_cvar(rendimientos_indiv[etf_seleccionado], confianza=0.95)
         histograma = histog_distr(rendimientos_indiv[etf_seleccionado], var_95, cvar_95, f"Distribución de rendimientos para {etf_seleccionado}")
         st.plotly_chart(histograma)
-
                 
 # Tab 2: Portafolios Óptimos
 with tab2:
@@ -770,7 +744,7 @@ with tab2:
                 st.error(f"Error al calcular el promedio del tipo de cambio: {e}")
     else:
         st.error("Los portafolios óptimos solo están disponibles para la ventana 2010-2020.")
-
+        
 # Tab 3: Comparación de Portafolios
 with tab3:
     st.markdown(
@@ -828,17 +802,11 @@ with tab3:
             title="Fecha",
             titlefont=dict(color='white'),
             tickfont=dict(color='white'),
-            showgrid=False,
-            linecolor='white',
-            tickcolor='white'
         ),
         yaxis=dict(
             title="Precio Normalizado",
             titlefont=dict(color='white'),
             tickfont=dict(color='white'),
-            showgrid=False,
-            linecolor='white',
-            tickcolor='white'
         ),
         hovermode="x unified",
         plot_bgcolor='#1D1E2C',
@@ -924,6 +892,15 @@ with tab3:
     bt_iguales, stats_iguales = backtesting_portafolio(rendimientos_backtesting, pesos_iguales, inicio, fin)
     bt_sp500, stats_sp500 = backtesting_portafolio(rendimientos_backtesting[["SPY"]], [1.0], inicio, fin)
 
+    # Mostrar las metricas
+    metricas_backtesting_df = pd.DataFrame({
+        "Máximo Sharpe": stats_sharpe,
+        "Mínima Volatilidad": stats_volatilidad,
+        "Mínima Volatilidad (Rendimiento 10%)": stats_rendimiento,
+        "Pesos Iguales": stats_iguales,
+        "S&P 500": stats_sp500
+    })
+
     # Gráfica de Rendimiento Acumulado
     st.markdown(
         """
@@ -979,20 +956,22 @@ with tab3:
         y=bt_sp500,
         mode='lines',
         name="S&P 500",
-        line=dict(color='#FF6500')
+        line=dict(color='#fbb13c')
     ))
     fig_bt.update_layout(
         title=dict(text="Rendimiento Acumulado", font=dict(color='white')),
         xaxis=dict(
             title="Fecha",
             titlefont=dict(color='white'),
-            tickfont=dict(color='white')
+            tickfont=dict(color='white'),
+            showgrid=False,
         ),
         yaxis=dict(
             title="Rendimiento Acumulado",
             titlefont=dict(color='white'),
             tickfont=dict(color='white')
         ),
+        hovermode="x unified",
         plot_bgcolor='#1D1E2C',
         paper_bgcolor='#1D1E2C',
         font=dict(color='white'),
@@ -1005,6 +984,29 @@ with tab3:
 
     # Mostrar estadísticas
     # st.markdown("### Métricas de Backtesting")
+
+    restricciones = {
+        "Máximo Sharpe": '#FB8500',
+        "Mínima Volatilidad": '#2CA58D',
+        "Mínima Volatilidad (Rendimiento 10%)": '#84BC9C',
+        "Pesos Iguales": '#F46197',
+        "S&P 500": '#fbb13c'
+    }
+    
+    # Convertir las claves del diccionario en una lista
+    restricc = list(restricciones.keys())
+    
+    # Texto centrado con tamaño más pequeño
+    st.markdown('<div class="centered-small">Métricas de Backtesting</div>', unsafe_allow_html=True)
+    
+    # Slider de selección múltiple para restricciones
+    restricc_seleccionadas = st.multiselect(
+        "Selecciona una o varios portafolios para el análisis:",
+        options=restricc,  # Usar la lista de claves
+        default=restricc[:1],  # Seleccionar una opción por defecto (la primera)
+        help="Selecciona las restricciones que deseas analizar"
+    )
+
     st.markdown(
         """
         <style>
@@ -1017,8 +1019,6 @@ with tab3:
         """,
         unsafe_allow_html=True,
     )
-    # Texto centrado con tamaño más pequeño
-    st.markdown('<div class="centered-small">Métricas de Backtesting</div>', unsafe_allow_html=True)
 
     # HTML para las métricas personalizadas
     def render_metric(label, value, background_color, border_left_color, text_color="white"):
@@ -1034,63 +1034,39 @@ with tab3:
     # Columnas principales
     col1, col2 = st.columns(2)
 
-    # Columna 1: Máximo Sharpe, Mínima Volatilidad y S&P500 (en 3 boxes por fila cada uno)
-    with col1:
-        # Máximo Sharpe
-        st.markdown("#### Máximo Sharpe")
-        stats = stats_sharpe
-        # Dividir en filas de 3 métricas
-        for i in range(0, len(stats), 3):  
-            cols = st.columns(3)
-            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                with col:
-                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#1F2C56", border_left_color="#F46197"), unsafe_allow_html=True)
-
-        # Mínima Volatilidad
-        st.markdown("#### Mínima Volatilidad")
-        stats = stats_volatilidad
-        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
-            cols = st.columns(3)
-            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                with col:
-                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#da4167", border_left_color="#a2d2ff"), unsafe_allow_html=True)
-
-        # S&P500
-        st.markdown("#### S&P 500")
-        stats = stats_sp500
-        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
-            cols = st.columns(3)
-            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                with col:
-                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#003161", border_left_color="#740938"), unsafe_allow_html=True)
-
-    # Columna 2: Mínima Volatilidad (Rendimiento 10%) y Pesos Iguales (en 3 boxes por fila cada uno)
-    with col2:
-        # Mínima Volatilidad (Rendimiento 10%)
-        st.markdown("#### Mínima Volatilidad (Rendimiento 10%)")
-        stats = stats_rendimiento
-        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
-            cols = st.columns(3)
-            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                with col:
-                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#8f2d56", border_left_color="#026c7c", text_color="black"), unsafe_allow_html=True)
-
-        # Pesos Iguales
-        st.markdown("#### Pesos Iguales")
-        stats = stats_iguales
-        for i in range(0, len(stats), 3):  # Dividir en filas de 3 métricas
-            cols = st.columns(3)
-            for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
-                with col:
-                    st.markdown(render_metric(label, f"{value:.2f}", background_color="#93e1d8", border_left_color="#8f2d56", text_color="black"), unsafe_allow_html=True)
+    if restricc_seleccionadas:
+        for i, restriccion in enumerate(restricc_seleccionadas):
+            if (i + 1) % 2 == 1:  # Si es impar
+                with col1:
+                    st.markdown(f"### {restriccion}")
+                    stats = metricas_backtesting_df[restriccion]
+                    # Dividir en filas de 3 métricas
+                    for i in range(0, len(stats), 3):  
+                        cols = st.columns(3)
+                        for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                            with col:
+                                st.markdown(render_metric(label, f"{value:.2f}", background_color=restricciones[restriccion], border_left_color="#FEFAE0"), unsafe_allow_html=True)
+            else: # Si es par
+                with col2:
+                    st.markdown(f"### {restriccion}")
+                    stats = metricas_backtesting_df[restriccion]
+                    # Dividir en filas de 3 métricas
+                    for i in range(0, len(stats), 3):  
+                        cols = st.columns(3)
+                        for col, (label, value) in zip(cols, list(stats.items())[i:i+3]):
+                            with col:
+                                st.markdown(render_metric(label, f"{value:.2f}", background_color=restricciones[restriccion], border_left_color="#FEFAE0"), unsafe_allow_html=True)
+    else:
+        with col1:
+            st.warning("No se han seleccionado portafolios.")
+        with col2:
+            st.warning("Selecciona una o más portafolios para ver las estadísticas.")
 
     # Subheader centrado
     st.markdown('<h3 class="centered">Conclusión</h3>', unsafe_allow_html=True)
 
     st.write("Basándonos en los resultados del backtesting, este portafolio es sólido porque combina un rendimiento atractivo del 12% con una estructura de riesgo razonable. La relación riesgo-retorno es muy buena, como lo demuestra el ratio de Sharpe de 0.7 y el Sortino de 0.68. Además, los riesgos extremos, medidos por el VaR y el CVAR, son controlados para un portafolio expuesto al mercado accionario. Finalmente, el máximo drawdown está dentro de niveles típicos para inversiones de renta variable.")
     st.write("En conclusión, este portafolio es una excelente elección para un inversor con tolerancia al riesgo moderada, interesado en obtener retornos por encima del promedio.")
-
-
 # Tab 4: Black-Litterman
 with tab4:
     st.markdown(
